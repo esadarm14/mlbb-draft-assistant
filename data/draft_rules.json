@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-21T00:00:00.000Z",
+  "records": [
+    {
+      "id": "conservative-draft-v1",
+      "label": "AI GENERATED STRATEGIC ANALYSIS",
+      "rules": [
+        "Do not raise a hero tier solely because the hero received a buff.",
+        "Require verified hero data and explicit matchup or synergy evidence before ranking a draft candidate.",
+        "Consider team role coverage, known counter evidence, known synergy evidence, and patch freshness.",
+        "When evidence is absent or stale, return insufficient-data instead of inventing a recommendation.",
+        "Never describe this analysis as an official Moonton recommendation."
+      ],
+      "sourceUrl": null,
+      "sourceType": "AI_ANALYSIS_RULES",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-21",
+      "verificationStatus": "UNVERIFIED",
+      "confidenceLevel": 0.5
+    }
+  ]
+}

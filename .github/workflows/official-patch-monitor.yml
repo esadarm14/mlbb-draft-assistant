@@ -1,0 +1,61 @@
+name: Official Moonton Patch Monitor
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 10.00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install browser for normal public-page rendering
+        run: npx playwright install --with-deps chromium
+
+      - name: Check official public pages and stage a review proposal
+        id: sync
+        run: npm run ci:proposal
+
+      - name: Create or update review branch and pull request
+        if: steps.sync.outputs.changes != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROPOSAL_REPORT: ${{ steps.sync.outputs.report }}
+          PATCH_VERSION: ${{ steps.sync.outputs.patch_version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -B automation/official-sync-review
+          git add data/patch_history.json data/hero_adjustments.json data/heroes.json data/hero_roles.json data/hero_skills.json data/hero_matchups.json data/hero_synergies.json
+          if git diff --cached --quiet; then
+            echo 'No database file changes to propose.'
+            exit 0
+          fi
+          git commit -m 'Propose reviewed Moonton data sync'
+          git push --force origin HEAD:refs/heads/automation/official-sync-review
+          PR_URL="$(gh pr list --head "${GITHUB_REPOSITORY_OWNER}:automation/official-sync-review" --json url --jq '.[0].url // empty')"
+          if [ -z "$PR_URL" ]; then
+            gh pr create --base "${{ github.event.repository.default_branch }}" --head automation/official-sync-review --title "Review official MLBB data sync" --body-file "$PROPOSAL_REPORT"
+          else
+            gh pr edit "$PR_URL" --title "Review official MLBB data sync" --body-file "$PROPOSAL_REPORT"
+          fi

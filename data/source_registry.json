@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-21T00:00:00.000Z",
+  "records": [
+    {
+      "id": "moonton-main",
+      "name": "Situs resmi Mobile Legends",
+      "sourceUrl": "https://www.mobilelegends.com/",
+      "sourceType": "OFFICIAL_WEBSITE",
+      "purpose": "Sumber resmi utama dan pemeriksaan akses publik.",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-21",
+      "verificationStatus": "VERIFIED",
+      "confidenceLevel": 1
+    },
+    {
+      "id": "moonton-id-home",
+      "name": "Beranda resmi Mobile Legends (ID)",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "purpose": "Data hero yang benar-benar ditampilkan pada beranda publik; cakupan tidak diasumsikan lengkap.",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-21",
+      "verificationStatus": "VERIFIED",
+      "confidenceLevel": 1
+    },
+    {
+      "id": "moonton-patch-notes",
+      "name": "Indeks patch notes resmi",
+      "sourceUrl": "https://www.mobilelegends.com/news/patch-notes",
+      "sourceType": "OFFICIAL_PATCH_INDEX",
+      "purpose": "Mendeteksi judul dan tanggal patch notes yang ditampilkan Moonton.",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-21",
+      "verificationStatus": "VERIFIED",
+      "confidenceLevel": 1
+    },
+    {
+      "id": "moonton-news",
+      "name": "Berita resmi Mobile Legends",
+      "sourceUrl": "https://www.mobilelegends.com/news/",
+      "sourceType": "OFFICIAL_NEWS_INDEX",
+      "purpose": "Pengumuman resmi, termasuk hero baru atau revamp bila dipublikasikan.",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-21",
+      "verificationStatus": "VERIFIED",
+      "confidenceLevel": 1
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#091320">
+  <meta name="description" content="MLBB Draft Assistant — pusat data resmi Moonton dan analisis draft yang transparan.">
+  <title>MLBB Draft Assistant | Official Data Center</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Lewati ke konten</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#overview" aria-label="MLBB Draft Assistant, beranda">
+        <span class="brand-mark">ML</span>
+        <span><strong>MLBB</strong><small>DRAFT ASSISTANT</small></span>
+      </a>
+      <div class="topbar-right">
+        <span id="global-status" class="status-pill status-stale">DATA STALE</span>
+        <button id="top-sync" class="button button-small button-primary" type="button">Sync Now</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navigasi utama">
+        <div class="nav-label">WORKSPACE</div>
+        <nav>
+          <button class="nav-item active" data-view="overview" type="button"><span class="nav-dot"></span>Ikhtisar</button>
+          <button class="nav-item" data-view="patches" type="button"><span class="nav-dot"></span>Riwayat Patch</button>
+          <button class="nav-item" data-view="heroes" type="button"><span class="nav-dot"></span>Database Hero</button>
+          <button class="nav-item" data-view="draft" type="button"><span class="nav-dot"></span>Draft Analysis</button>
+          <button class="nav-item" data-view="admin" type="button"><span class="nav-dot"></span>Admin Data</button>
+        </nav>
+        <div class="sidebar-note">
+          <span class="eyebrow">PRINSIP DATA</span>
+          <p>Fakta bersumber dari Moonton. Analisis strategi selalu diberi label AI.</p>
+        </div>
+        <div class="sidebar-foot">BUILD 1.0 · LOCAL-FIRST</div>
+      </aside>
+
+      <main id="main" class="main-content">
+        <section id="view-overview" class="view active">
+          <div class="page-heading">
+            <div><div class="eyebrow">MLBB · DATA CONSOLE</div><h1>Official Data Center</h1><p>Data resmi Moonton dipisahkan dari analisis strategis buatan AI.</p></div>
+            <button id="sync-main" class="button button-primary" type="button"><span aria-hidden="true">↻</span> Sync Now</button>
+          </div>
+          <div id="warning-banner" class="notice notice-warn" role="status">Belum ada sinkronisasi otomatis pada proyek baru. Patch live belum ditetapkan sampai sumber resmi menyebut Original Server secara eksplisit.</div>
+          <div class="metric-grid">
+            <article class="metric-card metric-feature"><div class="metric-label">CURRENT LIVE PATCH</div><div id="live-patch" class="metric-value">Belum terverifikasi</div><div id="live-date" class="metric-sub">Sumber resmi belum menetapkan server</div></article>
+            <article class="metric-card"><div class="metric-label">LAST SUCCESSFUL SYNC</div><div id="last-sync" class="metric-value metric-small">Belum ada</div><div class="metric-sub">Sinkronisasi lengkap</div></article>
+            <article class="metric-card"><div class="metric-label">LAST CHECKED</div><div id="last-checked" class="metric-value metric-small">Belum pernah</div><div class="metric-sub">Halaman resmi Moonton</div></article>
+            <article class="metric-card"><div class="metric-label">VERIFIED HEROES</div><div id="hero-count" class="metric-value">0</div><div id="hero-partial" class="metric-sub">0 data parsial</div></article>
+            <article class="metric-card"><div class="metric-label">PERUBAHAN TERBARU</div><div id="change-count" class="metric-value">0</div><div class="metric-sub">30 hari terakhir</div></article>
+            <article class="metric-card"><div class="metric-label">PENDING REVIEW</div><div id="pending-count" class="metric-value">0</div><div class="metric-sub">Belum diterapkan</div></article>
+          </div>
+
+          <div class="section-heading"><div><div class="eyebrow">STATUS SUMBER</div><h2>Sumber resmi</h2></div><span class="muted">Pengecekan publik · tanpa API tidak terdokumentasi</span></div>
+          <div id="source-grid" class="source-grid"></div>
+
+          <div class="columns-2 overview-bottom">
+            <article class="panel-card">
+              <div class="panel-heading"><div><div class="eyebrow">SERVER SCOPE</div><h2>Pemisahan patch</h2></div><span class="mini-tag">MOONTON-FIRST</span></div>
+              <div class="server-row"><span class="server-badge original">ORIGINAL SERVER</span><span id="original-summary">Belum ada patch live yang terverifikasi.</span></div>
+              <div class="server-row"><span class="server-badge advance">ADVANCE SERVER</span><span id="advance-summary">Belum ada patch Advance yang terverifikasi.</span></div>
+              <p class="small-note">Patch tanpa penanda server eksplisit ditampilkan sebagai <b>UNCLASSIFIED</b>, bukan dianggap berlaku di Original Server.</p>
+            </article>
+            <article class="panel-card">
+              <div class="panel-heading"><div><div class="eyebrow">PATCH ACTIVITY</div><h2>Patch terbaru terdeteksi</h2></div><button class="text-button" data-view-link="patches" type="button">Lihat semua →</button></div>
+              <div id="latest-patch-card" class="latest-patch-card"><div class="empty-state">Belum ada data patch dari proses sync.</div></div>
+            </article>
+          </div>
+          <div class="disclaimer"><span class="disclaimer-mark">i</span><span>Patch notes dan data hero bukan tier list. Counter pick, synergy, dan draft recommendation hanya muncul sebagai <b>AI GENERATED STRATEGIC ANALYSIS</b> dan bukan rekomendasi resmi Moonton.</span></div>
+        </section>
+
+        <section id="view-patches" class="view">
+          <div class="page-heading"><div><div class="eyebrow">OFFICIAL DATA</div><h1>Riwayat Patch</h1><p>Patch notes resmi, detail perubahan, dan server scope yang dapat dibuktikan.</p></div><button class="button button-primary" data-action="sync" type="button">Sync Now</button></div>
+          <div class="notice notice-info">Jika sumber resmi tidak menyebut Original Server atau Advance Server secara eksplisit, versi tetap <b>UNCLASSIFIED</b>. Tidak ada auto-promosi ke Current Live Patch.</div>
+          <div class="table-wrap"><table><thead><tr><th>Patch</th><th>Tanggal</th><th>Server</th><th>Perubahan</th><th>Status</th><th>Sumber</th></tr></thead><tbody id="patch-table"></tbody></table></div>
+        </section>
+
+        <section id="view-heroes" class="view">
+          <div class="page-heading"><div><div class="eyebrow">OFFICIAL HERO DATABASE</div><h1>Database Hero</h1><p>Cakupan awal berasal dari kartu yang terlihat pada halaman resmi. Ini bukan klaim roster lengkap.</p></div><label class="search-box"><span>⌕</span><input id="hero-search" type="search" placeholder="Cari hero, role, specialty…" aria-label="Cari hero"></label></div>
+          <div class="notice notice-warn">ID hero, portrait terstruktur, dan status rilis yang tidak dipublikasikan ditandai <b>UNVERIFIED OFFICIAL DATA</b>. Data terakhir yang valid tidak dihapus jika halaman berubah atau sync gagal.</div>
+          <div id="hero-grid" class="hero-grid"></div>
+        </section>
+
+        <section id="view-draft" class="view">
+          <div class="page-heading"><div><div class="eyebrow">DRAFT TOOL</div><h1>Draft Analysis</h1><p>Rekomendasi dibangun dari data strategi yang sudah diverifikasi, bukan patch notes saja.</p></div><span class="ai-label">AI GENERATED STRATEGIC ANALYSIS</span></div>
+          <div class="columns-2">
+            <form id="draft-form" class="panel-card form-card">
+              <label>Hero tim sendiri <span class="muted">(ID internal, pisahkan dengan koma)</span><input name="ally" placeholder="contoh: kalea, marcel"></label>
+              <label>Hero lawan <span class="muted">(ID internal)</span><input name="enemy" placeholder="contoh: sora"></label>
+              <label>Kandidat pick <span class="muted">(opsional)</span><input name="candidates" placeholder="contoh: hirara, obsidia"></label>
+              <button class="button button-primary" type="submit">Analisis Draft</button>
+            </form>
+            <div id="analysis-result" class="panel-card analysis-result"><div class="empty-state">Pilih draft lalu jalankan analisis. Sistem akan menolak membuat counter/synergy tanpa bukti.</div></div>
+          </div>
+          <div class="notice notice-info">Buff tidak otomatis menaikkan tier hero. Komposisi tim, role, perubahan skill, counter dan synergy dipertimbangkan jika data terverifikasi tersedia.</div>
+        </section>
+
+        <section id="view-admin" class="view">
+          <div class="page-heading"><div><div class="eyebrow">ADMIN PATCH MANAGEMENT</div><h1>Kelola Database</h1><p>Temuan otomatis masuk antrean; tinjau sebelum diterapkan.</p></div><button id="admin-sync" class="button button-primary" type="button">Sync Official Data</button></div>
+          <div class="notice notice-warn">Panel ini hanya berjalan pada <b>localhost</b>. Jangan expose server lokal ke internet. Sinkronisasi otomatis GitHub membuat usulan melalui Pull Request; merge adalah persetujuan untuk branch utama.</div>
+          <div class="admin-grid">
+            <article class="panel-card admin-card"><div class="panel-heading"><div><div class="eyebrow">REVIEW QUEUE</div><h2>Review Detected Changes</h2></div><button id="approve-selected" class="button button-small button-primary" type="button">Approve selected</button></div><div id="pending-list" class="pending-list"><div class="empty-state">Tidak ada perubahan menunggu review.</div></div></article>
+            <article class="panel-card admin-card"><div class="eyebrow">DATABASE FILES</div><h2>Import / Export</h2><p class="muted">Import hanya menerima schema yang tervalidasi. Sumber faktual wajib dari domain resmi Moonton.</p><div class="import-controls"><label>File database<select id="import-name"><option value="heroes">heroes.json</option><option value="hero_skills">hero_skills.json</option><option value="patch_history">patch_history.json</option><option value="hero_adjustments">hero_adjustments.json</option><option value="hero_roles">hero_roles.json</option><option value="hero_matchups">hero_matchups.json</option><option value="hero_synergies">hero_synergies.json</option><option value="draft_rules">draft_rules.json</option><option value="source_registry">source_registry.json</option></select></label><label>Pilih JSON<input id="import-file" type="file" accept=".json,application/json"></label><button id="import-button" class="button button-secondary" type="button">Manual JSON Import</button><a class="button button-secondary" href="/api/export">Export Database</a></div></article>
+          </div>
+          <article class="panel-card logs-card"><div class="panel-heading"><div><div class="eyebrow">SYNC HISTORY</div><h2>Sync Logs</h2></div><button id="refresh-logs" class="text-button" type="button">Refresh</button></div><div id="log-list" class="log-list"></div></article>
+        </section>
+        <footer class="app-footer"><span>MOONTON-FIRST · SOURCES SHOWN WITH EACH RECORD</span><span id="footer-sync">Belum pernah sync</span></footer>
+      </main>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
