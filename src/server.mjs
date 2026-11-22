@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ALL_NAMES, DATASET_NAMES, appendSyncLog, approveChanges, loadDatabase,
+  ALL_NAMES, DATASET_NAMES, appendSyncLog, approveChanges, comparePatches, loadDatabase,
   makeDashboard, queueChanges, readJson, validateDataset, writeJsonAtomic
 } from './data-store.mjs';
 import { monitorOfficialSources } from './official-sync.mjs';
@@ -96,6 +96,12 @@ const server = createServer(async (req, res) => {
         return sendJson(res, 200, { dashboard: await makeDashboard(db), database: db });
       }
       if (req.method === 'GET' && url.pathname === '/api/logs') return sendJson(res, 200, await readJson('sync_logs'));
+      if (req.method === 'GET' && url.pathname === '/api/compare') {
+        const patchA = url.searchParams.get('patchA') || null;
+        const patchB = url.searchParams.get('patchB') || null;
+        const db = await loadDatabase();
+        return sendJson(res, 200, comparePatches(db, patchA, patchB));
+      }
       if (req.method === 'GET' && url.pathname === '/api/export') {
         const db = await loadDatabase();
         const exported = Object.fromEntries(DATASET_NAMES.map((name) => [name, db[name]]));

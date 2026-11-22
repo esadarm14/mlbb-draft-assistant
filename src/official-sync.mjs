@@ -66,6 +66,9 @@ function arrowLegend(text) {
   return null;
 }
 
+const SKILL_OR_ATTR_RE = /^(?:skill\s*\d+|passive|pasif|ultimate|attributes?|atribut|enhanced\s+skill|controls?\s+optimizations?|mechanics?\s+optimizations?|stat\s+adjustments?)/i;
+const BATTLEFIELD_ENTITY_RE = /^(?:creep|minions?|team\s+bounty|turret|map|lord|turtle|wisps?)/i;
+
 export function extractPatchChanges(text) {
   const lines = String(text).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const legend = arrowLegend(text);
@@ -73,22 +76,56 @@ export function extractPatchChanges(text) {
   const equipmentBattlefield = [];
   const newHeroes = [];
   const revamps = [];
-  const heroHeader = /^\[([^\]]+)\]\s*\(([↑↓~])\)\s*$/;
-  const revampLine = /revamped hero\s*:\s*(.+)$/i;
-  const newHeroLine = /^(?:new hero|hero release)\s*[:\-–]\s*(.+)$/i;
+  const heroHeader = /^\[([^\]]+)\](?:\s*\(([↑↓~])\))?\s*$/;
+  const revampLine = /(?:10th\s+anniversary\s+)?revamped hero\s*:\s*(.+)$/i;
+  const newHeroLine = /^(?:new hero|hero release|hero baru)\s*[:\-–]\s*(.+)$/i;
+
+  let currentHero = null;
 
   for (let i = 0; i < lines.length; i += 1) {
     const match = lines[i].match(heroHeader);
     if (match) {
+      const entityName = match[1].trim();
+      const marker = match[2] || null;
+      const changeType = marker ? (legend?.[marker] ?? 'UNCLASSIFIED') : 'UNCLASSIFIED';
+
+      // Check if it's a battlefield entity
+      if (BATTLEFIELD_ENTITY_RE.test(entityName)) {
+        equipmentBattlefield.push({
+          section: entityName,
+          marker,
+          changeType,
+          excerpt: lines.slice(i, Math.min(lines.length, i + 8)).join('\n').slice(0, 1600)
+        });
+        currentHero = null;
+        continue;
+      }
+
+      // Check if it's a sub-skill/attribute under the current hero
+      if (SKILL_OR_ATTR_RE.test(entityName) && currentHero) {
+        currentHero.skillChanges.push({
+          skill: entityName,
+          marker,
+          changeType: changeType !== 'UNCLASSIFIED' ? changeType : (marker ? marker : 'ADJUSTMENT')
+        });
+        continue;
+      }
+
+      // Otherwise, it's a Hero header
       let end = i + 1;
-      while (end < lines.length && !heroHeader.test(lines[end]) && !/^#{1,3}\s+\d*\.?\s*[a-z]/i.test(lines[end])) end += 1;
-      heroes.push({
-        heroName: match[1].trim(),
-        marker: match[2],
-        changeType: legend?.[match[2]] ?? 'UNCLASSIFIED',
+      while (end < lines.length && !heroHeader.test(lines[end]) && !/^#{1,3}\s+\d*\.?\s*[a-z]/i.test(lines[end]) && !/^\d+\.\s+[A-Za-z]/.test(lines[end])) {
+        end += 1;
+      }
+      currentHero = {
+        heroName: entityName,
+        marker,
+        changeType: changeType !== 'UNCLASSIFIED' ? changeType : (legend ? 'ADJUSTMENT' : 'UNCLASSIFIED'),
+        skillChanges: [],
         excerpt: lines.slice(i, Math.min(end, i + 36)).join('\n').slice(0, 5000),
         sourceStatus: 'PARTIALLY VERIFIED'
-      });
+      };
+      heroes.push(currentHero);
+      continue;
     }
 
     const revamp = lines[i].match(revampLine);
@@ -100,10 +137,20 @@ export function extractPatchChanges(text) {
     if (newHero) newHeroes.push({ name: newHero[1].trim(), excerpt: lines.slice(i, i + 8).join('\n').slice(0, 1600) });
 
     const heading = lines[i].replace(/^#+\s*/, '').replace(/^\d+[.)]\s*/, '');
-    if (/^(equipment|battlefield|map|turret|minion|lord|turtle)(?:\s+(?:adjustments?|changes?))?$/i.test(heading)) {
+    if (/^(equipment|battlefield|map|turret|minion|lord|turtle|peralatan|medan perang)(?:\s+(?:adjustments?|changes?|penyesuaian))?$/i.test(heading)) {
       let end = i + 1;
       while (end < lines.length && !/^#{1,3}\s+/.test(lines[end]) && !/^\d+[.)]\s+[A-Z]/.test(lines[end])) end += 1;
       equipmentBattlefield.push({ section: heading, excerpt: lines.slice(i, Math.min(end, i + 24)).join('\n').slice(0, 3000) });
+    }
+  }
+
+  // Refine hero changeType if hero header had no arrow but skills do
+  for (const h of heroes) {
+    if ((!h.marker || h.changeType === 'UNCLASSIFIED') && h.skillChanges.length) {
+      const types = new Set(h.skillChanges.map((s) => s.changeType));
+      if (types.has('BUFF') && !types.has('NERF')) h.changeType = 'BUFF';
+      else if (types.has('NERF') && !types.has('BUFF')) h.changeType = 'NERF';
+      else h.changeType = 'ADJUSTMENT';
     }
   }
 
@@ -117,7 +164,7 @@ export function extractPatchChanges(text) {
       ...heroes.map((item) => item.changeType),
       ...revamps.map(() => 'REVAMP'),
       ...newHeroes.map(() => 'NEW_HERO'),
-      ...equipmentBattlefield.map((item) => /equipment/i.test(item.section) ? 'EQUIPMENT' : 'BATTLEFIELD')
+      ...equipmentBattlefield.map((item) => /equipment|peralatan/i.test(item.section) ? 'EQUIPMENT' : 'BATTLEFIELD')
     ])]
   };
 }
@@ -134,12 +181,18 @@ export function parseHeroCard(card) {
   while (idx < lines.length && roles.length < 3 && ROLE_NAMES.has(lines[idx])) roles.push(lines[idx++]);
   while (idx < lines.length && specialties.length < 4 && SPECIALTIES.has(lines[idx])) specialties.push(lines[idx++]);
   if (!roles.length) return null;
-  const skillsText = lines.slice(idx).filter((line) => !['Durability', 'Offense', 'Ability Effects', 'Difficulty', 'More Info'].includes(line)).join('\n').trim();
+  const rawSkills = lines.slice(idx).filter((line) => !['Durability', 'Offense', 'Ability Effects', 'Difficulty', 'More Info'].includes(line));
+  const skillsText = rawSkills.join('\n').trim();
+  const heroSkills = rawSkills.map((s) => ({ name: s, kind: 'UNVERIFIED' }));
   return {
-    id: slugify(name), heroId: null, name,
+    id: slugify(name),
+    heroId: null,
+    name,
     officialPortrait: card.portrait || null,
     officialRole: roles,
     heroSpecialty: specialties,
+    heroSkills: heroSkills.length ? heroSkills : 'UNVERIFIED OFFICIAL DATA',
+    heroSkillChanges: [],
     skillsText: skillsText || null,
     releaseStatus: 'UNVERIFIED OFFICIAL DATA',
     patchVersion: null,
@@ -194,19 +247,29 @@ async function readHeroCards(page) {
 }
 
 async function openLatestPatchArticle(page, entry) {
-  if (await page.locator('#mt-cb-policy').isVisible().catch(() => false)) {
-    throw new Error('Dialog Privacy Policy Update menutupi kontrol halaman resmi; sinkronisasi artikel dihentikan tanpa menutup atau menyetujui dialog.');
-  }
   const previousUrl = page.url();
+  const cardLocator = page.locator('.mt-list-item').filter({ hasText: entry.title }).first();
   const titleLocator = page.getByText(entry.title, { exact: true }).first();
   try {
-    await titleLocator.click({ timeout: 15000 });
-    await page.waitForTimeout(1200);
+    if (await cardLocator.count()) {
+      await cardLocator.evaluate((el) => el.click());
+    } else if (await titleLocator.count()) {
+      await titleLocator.evaluate((el) => el.click());
+    } else {
+      await titleLocator.click({ timeout: 10000 });
+    }
+    await page.waitForTimeout(3000);
   } catch (error) {
+    if (await page.locator('#mt-cb-policy').isVisible().catch(() => false)) {
+      throw new Error('Dialog Privacy Policy Update menutupi kontrol halaman resmi; sinkronisasi artikel dihentikan tanpa menutup atau menyetujui dialog.');
+    }
     throw new Error(`Kartu patch resmi tidak dapat dibuka melalui interaksi normal: ${error.message.slice(0, 160)}`);
   }
   const finalUrl = assertOfficialUrl(page.url());
   if (finalUrl === previousUrl || !/\/news\/articleldetail\b/i.test(new URL(finalUrl).pathname)) {
+    if (await page.locator('#mt-cb-policy').isVisible().catch(() => false)) {
+      throw new Error('Dialog Privacy Policy Update menutupi kontrol halaman resmi; sinkronisasi artikel dihentikan tanpa menutup atau menyetujui dialog.');
+    }
     throw new Error('Kartu patch tidak membuka artikel detail resmi; tidak mencoba endpoint lain.');
   }
   const articleText = await page.locator('body').innerText();

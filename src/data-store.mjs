@@ -109,6 +109,7 @@ export function applyApprovedChanges(db, chosen) {
           serverScope: p.serverScope,
           category: item.category,
           heroName: item.heroName ?? item.name ?? null,
+          skillChanges: item.skillChanges ?? [],
           excerpt: item.excerpt ?? null,
           sourceUrl: p.sourceUrl,
           sourceType: 'OFFICIAL_PATCH_NOTE',
@@ -117,6 +118,16 @@ export function applyApprovedChanges(db, chosen) {
           confidenceLevel: p.confidenceLevel
         };
         updateEnvelope(db, 'hero_adjustments', record);
+
+        if (item.heroName) {
+          const heroSlug = slugify(item.heroName);
+          const matchedHero = db.heroes.records.find((h) => h.id === heroSlug);
+          if (matchedHero) {
+            matchedHero.patchVersion = p.version;
+            matchedHero.heroSkillChanges = item.skillChanges ?? [];
+            matchedHero.lastUpdated = p.retrievalDate;
+          }
+        }
       }
       if (p.serverScope === 'ORIGINAL_SERVER' && p.verificationStatus === 'VERIFIED') {
         db.sync_state.previousPatch = db.sync_state.currentLivePatch ?? db.sync_state.previousPatch ?? null;
@@ -188,6 +199,7 @@ export async function makeDashboard(db) {
     currentLivePatch: live ? { version: live.version, releaseDate: live.releaseDate, sourceUrl: live.sourceUrl } : null,
     latestOfficialPatchNote: patchRows[0] ?? null,
     previousPatch: previousOriginalPatch,
+    previousHistoricalPatch: patchRows[1] ?? null,
     advanceServerPatches: patchRows.filter((row) => row.serverScope === 'ADVANCE_SERVER'),
     unclassifiedPatches: patchRows.filter((row) => row.serverScope === 'UNCLASSIFIED' || row.serverScope === 'MULTI_SERVER'),
     lastSuccessfulSync: successfulAt,
@@ -199,5 +211,86 @@ export async function makeDashboard(db) {
     recentChangeCount: (db.hero_adjustments.records ?? []).filter((item) => String(item.retrievalDate ?? '') >= monthAgo).length,
     pendingChangeCount: (db.pending_changes.records ?? []).length,
     sourceStatuses: db.sync_state.sourceStatuses ?? {}
+  };
+}
+
+export function comparePatches(db, patchVersionA, patchVersionB) {
+  const patches = [...(db.patch_history?.records ?? [])].sort((a, b) => String(b.releaseDate ?? '').localeCompare(String(a.releaseDate ?? '')));
+  const patchA = patchVersionA ? patches.find((p) => p.version === patchVersionA) : patches[0] ?? null;
+  const patchB = patchVersionB ? patches.find((p) => p.version === patchVersionB) : patches[1] ?? null;
+
+  if (!patchA) return { error: 'Patch A tidak ditemukan dalam riwayat database.' };
+
+  const getChanges = (p) => {
+    if (!p) return { buffs: [], nerfs: [], adjustments: [], revamps: [], newHeroes: [], battlefield: [] };
+    const adj = (db.hero_adjustments?.records ?? []).filter((r) => r.patchVersion === p.version);
+    const summary = p.changeSummary ?? {};
+
+    const heroes = adj.length
+      ? adj.filter((r) => r.heroName && ['BUFF', 'NERF', 'ADJUSTMENT'].includes(r.category))
+      : (summary.heroes ?? []);
+    const revamps = adj.length
+      ? adj.filter((r) => r.category === 'REVAMP')
+      : (summary.revamps ?? []);
+    const newHeroes = adj.length
+      ? adj.filter((r) => r.category === 'NEW_HERO')
+      : (summary.newHeroes ?? []);
+    const battlefield = adj.length
+      ? adj.filter((r) => ['EQUIPMENT', 'BATTLEFIELD'].includes(r.category))
+      : (summary.equipmentBattlefield ?? []);
+
+    return {
+      buffs: heroes.filter((h) => (h.category || h.changeType) === 'BUFF').map((h) => ({ heroName: h.heroName, excerpt: h.excerpt })),
+      nerfs: heroes.filter((h) => (h.category || h.changeType) === 'NERF').map((h) => ({ heroName: h.heroName, excerpt: h.excerpt })),
+      adjustments: heroes.filter((h) => (h.category || h.changeType) === 'ADJUSTMENT').map((h) => ({ heroName: h.heroName, excerpt: h.excerpt })),
+      revamps: revamps.map((r) => ({ heroName: r.heroName || r.name, excerpt: r.excerpt })),
+      newHeroes: newHeroes.map((n) => ({ name: n.heroName || n.name, excerpt: n.excerpt })),
+      battlefield: battlefield.map((b) => ({ section: b.section || b.heroName || 'Battlefield', excerpt: b.excerpt }))
+    };
+  };
+
+  const changesA = getChanges(patchA);
+  const changesB = getChanges(patchB);
+
+  const heroNamesA = new Set([
+    ...changesA.buffs.map((h) => h.heroName),
+    ...changesA.nerfs.map((h) => h.heroName),
+    ...changesA.adjustments.map((h) => h.heroName),
+    ...changesA.revamps.map((h) => h.heroName)
+  ]);
+  const heroNamesB = new Set([
+    ...changesB.buffs.map((h) => h.heroName),
+    ...changesB.nerfs.map((h) => h.heroName),
+    ...changesB.adjustments.map((h) => h.heroName),
+    ...changesB.revamps.map((h) => h.heroName)
+  ]);
+  const commonHeroes = [...heroNamesA].filter((name) => heroNamesB.has(name));
+
+  return {
+    patchA: {
+      version: patchA.version,
+      title: patchA.title,
+      releaseDate: patchA.releaseDate,
+      serverScope: patchA.serverScope,
+      verificationStatus: patchA.verificationStatus,
+      sourceUrl: patchA.sourceUrl
+    },
+    patchB: patchB ? {
+      version: patchB.version,
+      title: patchB.title,
+      releaseDate: patchB.releaseDate,
+      serverScope: patchB.serverScope,
+      verificationStatus: patchB.verificationStatus,
+      sourceUrl: patchB.sourceUrl
+    } : null,
+    comparison: {
+      a: changesA,
+      b: changesB,
+      commonHeroes,
+      summary: {
+        aTotal: changesA.buffs.length + changesA.nerfs.length + changesA.adjustments.length + changesA.revamps.length + changesA.newHeroes.length + changesA.battlefield.length,
+        bTotal: changesB.buffs.length + changesB.nerfs.length + changesB.adjustments.length + changesB.revamps.length + changesB.newHeroes.length + changesB.battlefield.length
+      }
+    }
   };
 }

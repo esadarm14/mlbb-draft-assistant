@@ -49,6 +49,7 @@
           <div id="warning-banner" class="notice notice-warn" role="status">Belum ada sinkronisasi otomatis pada proyek baru. Patch live belum ditetapkan sampai sumber resmi menyebut Original Server secara eksplisit.</div>
           <div class="metric-grid">
             <article class="metric-card metric-feature"><div class="metric-label">CURRENT LIVE PATCH</div><div id="live-patch" class="metric-value">Belum terverifikasi</div><div id="live-date" class="metric-sub">Sumber resmi belum menetapkan server</div></article>
+            <article class="metric-card"><div class="metric-label">PREVIOUS PATCH</div><div id="previous-patch" class="metric-value">Belum ada</div><div id="previous-date" class="metric-sub">Original Server</div></article>
             <article class="metric-card"><div class="metric-label">LAST SUCCESSFUL SYNC</div><div id="last-sync" class="metric-value metric-small">Belum ada</div><div class="metric-sub">Sinkronisasi lengkap</div></article>
             <article class="metric-card"><div class="metric-label">LAST CHECKED</div><div id="last-checked" class="metric-value metric-small">Belum pernah</div><div class="metric-sub">Halaman resmi Moonton</div></article>
             <article class="metric-card"><div class="metric-label">VERIFIED HEROES</div><div id="hero-count" class="metric-value">0</div><div id="hero-partial" class="metric-sub">0 data parsial</div></article>
@@ -77,6 +78,24 @@
         <section id="view-patches" class="view">
           <div class="page-heading"><div><div class="eyebrow">OFFICIAL DATA</div><h1>Riwayat Patch</h1><p>Patch notes resmi, detail perubahan, dan server scope yang dapat dibuktikan.</p></div><button class="button button-primary" data-action="sync" type="button">Sync Now</button></div>
           <div class="notice notice-info">Jika sumber resmi tidak menyebut Original Server atau Advance Server secara eksplisit, versi tetap <b>UNCLASSIFIED</b>. Tidak ada auto-promosi ke Current Live Patch.</div>
+          
+          <article class="panel-card patch-compare-card" style="margin-bottom: 24px;">
+            <div class="panel-heading">
+              <div>
+                <div class="eyebrow">FITUR MONITOR PATCH</div>
+                <h2>Bandingkan Patch (Patch Comparison)</h2>
+              </div>
+              <span class="mini-tag">OFFICIAL PATCH DIFF</span>
+            </div>
+            <p class="muted">Bandingkan hero buff, nerf, adjustment, revamp, hero baru, dan battlefield antara dua versi patch resmi.</p>
+            <div class="compare-controls" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0;">
+              <label style="display:flex;gap:6px;align-items:center;font-size:11px;">Patch A: <select id="compare-patch-a" style="background:#091523;border:1px solid #2b4057;color:#dce8f1;padding:6px 10px;border-radius:8px;"></select></label>
+              <label style="display:flex;gap:6px;align-items:center;font-size:11px;">Patch B: <select id="compare-patch-b" style="background:#091523;border:1px solid #2b4057;color:#dce8f1;padding:6px 10px;border-radius:8px;"></select></label>
+              <button id="compare-button" class="button button-secondary button-small" type="button">Bandingkan</button>
+            </div>
+            <div id="compare-result" class="compare-result"></div>
+          </article>
+
           <div class="table-wrap"><table><thead><tr><th>Patch</th><th>Tanggal</th><th>Server</th><th>Perubahan</th><th>Status</th><th>Sumber</th></tr></thead><tbody id="patch-table"></tbody></table></div>
         </section>
 

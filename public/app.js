@@ -66,6 +66,9 @@ function renderOverview(db, dashboard) {
   $('#global-status').className = `status-pill status-${statusClass(dashboard.dataStatus)}`;
   $('#live-patch').textContent = dashboard.currentLivePatch?.version || 'Belum terverifikasi';
   $('#live-date').textContent = dashboard.currentLivePatch?.releaseDate ? `Rilis ${formatDate(dashboard.currentLivePatch.releaseDate, false)} · Original Server` : 'Sumber resmi belum menetapkan Original Server';
+  const prev = dashboard.previousPatch || dashboard.previousHistoricalPatch;
+  $('#previous-patch').textContent = prev?.version || 'Belum ada';
+  $('#previous-date').textContent = prev?.releaseDate ? `Rilis ${formatDate(prev.releaseDate, false)} · ${prev.serverScope || 'Histori'}` : 'Belum ada data patch sebelumnya';
   $('#last-sync').textContent = formatDate(dashboard.lastSuccessfulSync);
   $('#last-checked').textContent = formatDate(dashboard.lastCheckedAt);
   $('#hero-count').textContent = dashboard.verifiedHeroCount;
@@ -95,6 +98,16 @@ function renderPatches(db) {
     const scopeClass = patch.serverScope === 'ADVANCE_SERVER' ? 'advance' : patch.serverScope === 'ORIGINAL_SERVER' ? 'original' : 'unclassified';
     return `<tr><td><strong>${escapeHtml(patch.version)}</strong><br><span class="muted">${escapeHtml(patch.title || '')}</span></td><td>${formatDate(patch.releaseDate, false)}</td><td><span class="server-badge ${scopeClass}">${escapeHtml(patch.serverScope || 'UNCLASSIFIED')}</span></td><td>${escapeHtml(changes)}</td><td>${badge(patch.verificationStatus)}</td><td>${sourceLink(patch.sourceUrl, 'Sumber')}</td></tr>`;
   }).join('') : '<tr><td colspan="6" class="empty-state">Belum ada riwayat patch.</td></tr>';
+
+  // Populate comparison dropdowns
+  const selA = $('#compare-patch-a');
+  const selB = $('#compare-patch-b');
+  if (selA && selB && rows.length) {
+    const opts = rows.map((r, i) => `<option value="${escapeHtml(r.version)}" ${i === 0 ? 'selected' : ''}>${escapeHtml(r.version)} (${formatDate(r.releaseDate, false)})</option>`).join('');
+    const optsB = rows.map((r, i) => `<option value="${escapeHtml(r.version)}" ${i === 1 ? 'selected' : ''}>${escapeHtml(r.version)} (${formatDate(r.releaseDate, false)})</option>`).join('');
+    selA.innerHTML = opts;
+    selB.innerHTML = optsB;
+  }
 }
 function renderHeroes(db, search = '') {
   const roles = new Map((db.hero_roles?.records || []).map((row) => [row.heroId, row]));
@@ -107,7 +120,12 @@ function renderHeroes(db, search = '') {
     const imageUrl = safeUrl(hero.officialPortrait);
     const avatar = imageUrl ? `<img class="hero-avatar" src="${escapeHtml(imageUrl)}" alt="Potret resmi ${escapeHtml(hero.name)}" loading="lazy">` : `<div class="hero-avatar" aria-hidden="true">${escapeHtml(hero.name.slice(0, 2).toUpperCase())}</div>`;
     const notes = hero.notes ? `<p class="muted">${escapeHtml(hero.notes)}</p>` : '';
-    return `<article class="hero-card"><div class="hero-card-head">${avatar}<div class="hero-title"><h3>${escapeHtml(hero.name)}</h3><small>ID: ${hero.heroId ? escapeHtml(hero.heroId) : 'UNVERIFIED OFFICIAL DATA'}</small></div></div><div class="hero-data"><div>${badge(hero.verificationStatus)}</div><div class="eyebrow">ROLE</div><div class="tag-row">${(role.roles || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('') || '<span class="muted">Belum tersedia</span>'}</div><div class="eyebrow">SPECIALTY</div><div class="tag-row">${(role.specialties || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('') || '<span class="muted">Belum tersedia</span>'}</div><div class="eyebrow">SKILL NAMES</div>${heroSkills.length ? `<ul class="skill-list">${heroSkills.map((skill) => `<li>${escapeHtml(skill.name)}${skill.kind && skill.kind !== 'UNVERIFIED' ? ` · ${escapeHtml(skill.kind)}` : ''}</li>`).join('')}</ul>` : '<div class="muted">UNVERIFIED OFFICIAL DATA</div>'}${notes}</div><div class="hero-foot"><span class="muted">${escapeHtml(hero.patchVersion || 'Patch belum diverifikasi')}</span>${sourceLink(hero.sourceUrl, 'Sumber resmi')}</div></article>`;
+    const skillChanges = hero.heroSkillChanges || [];
+    const skillChangesHtml = skillChanges.length
+      ? `<div class="eyebrow" style="margin-top:8px;">PERUBAHAN SKILL (${escapeHtml(hero.patchVersion || 'Patch Terkini')})</div>
+         <ul class="skill-list">${skillChanges.map((sc) => `<li><b>${escapeHtml(sc.skill)}</b> <span class="badge badge-${statusClass(sc.changeType)}">${escapeHtml(sc.marker || sc.changeType)}</span></li>`).join('')}</ul>`
+      : '';
+    return `<article class="hero-card"><div class="hero-card-head">${avatar}<div class="hero-title"><h3>${escapeHtml(hero.name)}</h3><small>ID: ${hero.heroId ? escapeHtml(hero.heroId) : 'UNVERIFIED OFFICIAL DATA'}</small><br><small>Status: ${badge(hero.releaseStatus || 'UNVERIFIED OFFICIAL DATA')}</small></div></div><div class="hero-data"><div>${badge(hero.verificationStatus)}</div><div class="eyebrow">ROLE</div><div class="tag-row">${(role.roles || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('') || '<span class="muted">Belum tersedia</span>'}</div><div class="eyebrow">SPECIALTY</div><div class="tag-row">${(role.specialties || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('') || '<span class="muted">Belum tersedia</span>'}</div><div class="eyebrow">SKILL NAMES</div>${heroSkills.length ? `<ul class="skill-list">${heroSkills.map((skill) => `<li>${escapeHtml(skill.name)}${skill.kind && skill.kind !== 'UNVERIFIED' ? ` · ${escapeHtml(skill.kind)}` : ''}</li>`).join('')}</ul>` : '<div class="muted">UNVERIFIED OFFICIAL DATA</div>'}${skillChangesHtml}${notes}</div><div class="hero-foot"><span class="muted">${escapeHtml(hero.patchVersion || 'Patch belum diverifikasi')}</span>${sourceLink(hero.sourceUrl, 'Sumber resmi')}</div></article>`;
   }).join('') : '<div class="empty-state">Tidak ada profil yang cocok. Data resmi yang belum tersedia tidak dibuat-buat.</div>';
 }
 function renderPending(db) {
@@ -165,14 +183,166 @@ $('#import-button').addEventListener('click', async () => {
     toast(`${result.imported}.json berhasil diimpor (${result.count} records).`); await refresh(); await refreshLogs();
   } catch (error) { toast(`Import gagal: ${error.message}`, true); }
 });
-$('#draft-form').addEventListener('submit', async (event) => {
-  event.preventDefault(); const form = new FormData(event.currentTarget);
-  const split = (key) => String(form.get(key) || '').split(',').map((value) => value.trim()).filter(Boolean);
+function renderCompareResult(data) {
+  const el = $('#compare-result');
+  if (!el) return;
+  if (data.error) {
+    el.innerHTML = `<div class="empty-state">${escapeHtml(data.error)}</div>`;
+    return;
+  }
+  const pa = data.patchA;
+  const pb = data.patchB;
+  const ca = data.comparison?.a || {};
+  const cb = data.comparison?.b || {};
+  const summary = data.comparison?.summary || {};
+  const common = data.comparison?.commonHeroes || [];
+
+  const listItems = (items) => items?.length
+    ? items.map((i) => `<li><b>${escapeHtml(typeof i === 'string' ? i : (i.heroName || i.name || i.section))}</b>${i.excerpt ? `<div class="muted">${escapeHtml(i.excerpt.slice(0, 100))}...</div>` : ''}</li>`).join('')
+    : '<span class="muted">Tidak ada</span>';
+
+  el.innerHTML = `
+    <div style="background:rgba(9,21,35,.7);border:1px solid #22354b;border-radius:12px;padding:16px;margin-top:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <span class="badge badge-verified">Hasil Perbandingan Patch</span>
+        <span class="muted" style="font-size:11px;">Total perubahan: Patch ${escapeHtml(pa.version)} (${summary.aTotal || 0}) vs Patch ${pb ? escapeHtml(pb.version) : 'N/A'} (${summary.bTotal || 0})</span>
+      </div>
+      ${common.length ? `<div style="font-size:11px;margin-bottom:12px;color:var(--gold);">Hero terdampak di kedua patch: <b>${escapeHtml(common.join(', '))}</b></div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="border-right:1px solid rgba(130,160,190,.15);padding-right:10px;">
+          <h4 style="margin:0 0 8px;color:var(--cyan);">Patch ${escapeHtml(pa.version)} (${formatDate(pa.releaseDate, false)})</h4>
+          <div style="font-size:11px;">
+            <p><b style="color:var(--green);">Buffs:</b></p>
+            <ul style="padding-left:16px;">${listItems(ca.buffs)}</ul>
+            <p><b style="color:var(--red);">Nerfs:</b></p>
+            <ul style="padding-left:16px;">${listItems(ca.nerfs)}</ul>
+            <p><b style="color:var(--gold);">Adjustments:</b></p>
+            <ul style="padding-left:16px;">${listItems(ca.adjustments)}</ul>
+            <p><b>Revamps:</b></p>
+            <ul style="padding-left:16px;">${listItems(ca.revamps)}</ul>
+            <p><b>Battlefield / Equipment:</b></p>
+            <ul style="padding-left:16px;">${listItems(ca.battlefield)}</ul>
+          </div>
+        </div>
+        <div>
+          <h4 style="margin:0 0 8px;color:var(--gold);">${pb ? `Patch ${escapeHtml(pb.version)} (${formatDate(pb.releaseDate, false)})` : 'Patch Pembanding'}</h4>
+          <div style="font-size:11px;">
+            <p><b style="color:var(--green);">Buffs:</b></p>
+            <ul style="padding-left:16px;">${listItems(cb.buffs)}</ul>
+            <p><b style="color:var(--red);">Nerfs:</b></p>
+            <ul style="padding-left:16px;">${listItems(cb.nerfs)}</ul>
+            <p><b style="color:var(--gold);">Adjustments:</b></p>
+            <ul style="padding-left:16px;">${listItems(cb.adjustments)}</ul>
+            <p><b>Revamps:</b></p>
+            <ul style="padding-left:16px;">${listItems(cb.revamps)}</ul>
+            <p><b>Battlefield / Equipment:</b></p>
+            <ul style="padding-left:16px;">${listItems(cb.battlefield)}</ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function compareSelectedPatches() {
+  const patchA = $('#compare-patch-a')?.value;
+  const patchB = $('#compare-patch-b')?.value;
+  if (!patchA) return toast('Pilih Patch A untuk dibandingkan.', true);
   try {
-    const result = await api('/api/analyze', { method: 'POST', body: JSON.stringify({ ally: split('ally'), enemy: split('enemy'), candidates: split('candidates') }) });
-    const rows = result.recommendations?.length ? `<ol>${result.recommendations.map((item) => `<li><b>${escapeHtml(item.heroId)}</b> · skor ${escapeHtml(item.score)}<br>${escapeHtml(item.reasons.join('; '))}</li>`).join('')}</ol>` : '<div class="empty-state">Tidak ada rekomendasi yang memenuhi bukti terverifikasi.</div>';
-    $('#analysis-result').innerHTML = `<div class="eyebrow">${escapeHtml(result.label)}</div><h3>${escapeHtml(result.status.replaceAll('_', ' '))}</h3><p class="muted">${escapeHtml(result.message)}</p>${rows}<div class="small-note">${(result.warnings || []).map(escapeHtml).join('<br>')}</div>`;
-  } catch (error) { toast(error.message, true); }
+    const res = await api(`/api/compare?patchA=${encodeURIComponent(patchA)}&patchB=${encodeURIComponent(patchB || '')}`);
+    renderCompareResult(res);
+  } catch (err) {
+    toast(`Gagal membandingkan: ${err.message}`, true);
+  }
+}
+
+$('#compare-button')?.addEventListener('click', compareSelectedPatches);
+$('#draft-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const split = (key) => String(form.get(key) || '').split(',').map((value) => value.trim().toLowerCase()).filter(Boolean);
+  const ally = split('ally');
+  const enemy = split('enemy');
+  const candidates = split('candidates');
+
+  try {
+    const result = await api('/api/analyze', { method: 'POST', body: JSON.stringify({ ally, enemy, candidates }) });
+
+    // 1. Recommendations
+    const recsHtml = result.recommendations?.length
+      ? `<div class="strategy-section">
+          <h4 style="margin:8px 0 4px;">Rekomendasi Pick Utama</h4>
+          <ol class="rec-list" style="padding-left:18px;margin:6px 0;">${result.recommendations.map((item) => `
+            <li style="margin-bottom:6px;">
+              <b>${escapeHtml(item.heroId)}</b> · Skor Kalkulasi: <b>${escapeHtml(item.score)}</b>
+              <div class="muted">${escapeHtml(item.reasons.join('; '))}</div>
+            </li>`).join('')}
+          </ol>
+        </div>`
+      : '<div class="empty-state">Tidak ada rekomendasi pick yang memenuhi kriteria bukti terverifikasi.</div>';
+
+    // 2. Team Composition
+    const tc = result.teamComposition;
+    let tcHtml = '';
+    if (tc) {
+      const allyRoles = Object.entries(tc.ally?.roles || {}).filter(([, count]) => count > 0).map(([r, c]) => `${r} (${c})`).join(', ') || 'Belum ada hero';
+      const enemyRoles = Object.entries(tc.enemy?.roles || {}).filter(([, count]) => count > 0).map(([r, c]) => `${r} (${c})`).join(', ') || 'Belum ada hero';
+      const gaps = (tc.ally?.gaps || []).map((g) => `<li style="color:#ffaaa4;">⚠️ ${escapeHtml(g)}</li>`).join('');
+      const strengths = (tc.ally?.strengths || []).map((s) => `<li style="color:#91e3bd;">✓ ${escapeHtml(s)}</li>`).join('');
+      tcHtml = `
+        <div class="strategy-section" style="margin-top:14px;border-top:1px solid rgba(130,160,190,.15);padding-top:12px;">
+          <h4 style="margin:0 0 6px;">Analisis Komposisi Tim</h4>
+          <p class="muted" style="margin:3px 0;">Role Tim Sendiri: <b>${escapeHtml(allyRoles)}</b></p>
+          <p class="muted" style="margin:3px 0;">Role Tim Lawan: <b>${escapeHtml(enemyRoles)}</b></p>
+          <ul style="font-size:11px;padding-left:18px;margin:6px 0;">
+            ${gaps}
+            ${strengths}
+          </ul>
+        </div>`;
+    }
+
+    // 3. Counter Picks
+    const cpKeys = Object.keys(result.counterPicks || {});
+    let cpHtml = '';
+    if (cpKeys.length) {
+      cpHtml = `
+        <div class="strategy-section" style="margin-top:14px;border-top:1px solid rgba(130,160,190,.15);padding-top:12px;">
+          <h4 style="margin:0 0 6px;">Analisis Counter Pick Lawan</h4>
+          ${cpKeys.map((eId) => {
+            const list = result.counterPicks[eId] || [];
+            return `<div style="font-size:11px;margin-bottom:6px;">
+              <b>vs ${escapeHtml(eId)}:</b> ${list.length ? list.map((c) => `${escapeHtml(c.heroId)} (+${c.score})`).join(', ') : '<span class="muted">Belum ada bukti counter resmi terverifikasi</span>'}
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+    // 4. Ban Recommendations
+    let banHtml = '';
+    if (result.banRecommendations?.length) {
+      banHtml = `
+        <div class="strategy-section" style="margin-top:14px;border-top:1px solid rgba(130,160,190,.15);padding-top:12px;">
+          <h4 style="margin:0 0 6px;">Rekomendasi Ban Prioritas</h4>
+          <ul style="font-size:11px;padding-left:18px;margin:6px 0;">
+            ${result.banRecommendations.map((b) => `<li><b style="color:var(--red);">${escapeHtml(b.heroId)}</b> [${escapeHtml(b.priority)}] - ${escapeHtml(b.reason)}</li>`).join('')}
+          </ul>
+        </div>`;
+    }
+
+    $('#analysis-result').innerHTML = `
+      <div class="eyebrow">${escapeHtml(result.label)}</div>
+      <h3 style="margin:4px 0 8px;">${escapeHtml(result.status.replaceAll('_', ' '))}</h3>
+      <p class="muted">${escapeHtml(result.message)}</p>
+      ${recsHtml}
+      ${tcHtml}
+      ${cpHtml}
+      ${banHtml}
+      <div class="small-note" style="margin-top:14px;border-top:1px solid rgba(130,160,190,.15);padding-top:10px;">
+        ${(result.warnings || []).map(escapeHtml).join('<br>')}
+      </div>`;
+  } catch (error) {
+    toast(error.message, true);
+  }
 });
 
 refresh().then(refreshLogs).catch((error) => toast(`Aplikasi belum siap: ${error.message}`, true));

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyApprovedChanges, makeDashboard, validateDataset } from '../src/data-store.mjs';
+import { applyApprovedChanges, comparePatches, makeDashboard, validateDataset } from '../src/data-store.mjs';
 
 const officialRecord = (overrides = {}) => ({
   id: 'record-1',
@@ -89,4 +89,26 @@ test('dashboard previous patch is selected only from verified Original Server hi
   const dashboard = await makeDashboard(db);
   assert.equal(dashboard.currentLivePatch.version, '2.2.16');
   assert.equal(dashboard.previousPatch.version, '2.2.10');
+});
+
+test('comparePatches computes side-by-side diff between two official patches', () => {
+  const db = makeDb();
+  const patch2 = {
+    id: 'patch-2-2-16', version: '2.2.16', title: '2.2.16 PATCH NOTES', releaseDate: '2026-09-16',
+    serverScope: 'ORIGINAL_SERVER', verificationStatus: 'VERIFIED', sourceUrl: 'https://www.mobilelegends.com',
+    changeSummary: {
+      heroes: [{ heroName: 'Aulus', changeType: 'BUFF' }, { heroName: 'Hanabi', changeType: 'NERF' }],
+      revamps: [{ heroName: 'Masha' }],
+      newHeroes: [],
+      equipmentBattlefield: [{ section: 'Battlefield', excerpt: 'Turret adjustments' }]
+    }
+  };
+  db.patch_history.records.push(patch2);
+  const diff = comparePatches(db, '2.2.16', '2.2.10');
+  assert.equal(diff.patchA.version, '2.2.16');
+  assert.equal(diff.patchB.version, '2.2.10');
+  assert.deepEqual(diff.comparison.a.buffs.map(b => b.heroName), ['Aulus']);
+  assert.deepEqual(diff.comparison.a.nerfs.map(n => n.heroName), ['Hanabi']);
+  assert.deepEqual(diff.comparison.a.revamps.map(r => r.heroName), ['Masha']);
+  assert.equal(diff.comparison.summary.aTotal, 4);
 });
