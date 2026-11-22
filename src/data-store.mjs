@@ -37,8 +37,13 @@ export async function writeJsonAtomic(name, value) {
 }
 
 export async function loadDatabase() {
-  const entries = await Promise.all(ALL_NAMES.map(async (name) => [name, await readJson(name)]));
-  return Object.fromEntries(entries);
+  try {
+    const entries = await Promise.all(ALL_NAMES.map(async (name) => [name, await readJson(name)]));
+    return Object.fromEntries(entries);
+  } catch {
+    const { getStaticDatabase } = await import('./static-db.mjs');
+    return getStaticDatabase();
+  }
 }
 
 export function validateDataset(name, value) {
