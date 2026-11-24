@@ -1,5 +1,942 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-21T00:00:00.000Z",
-  "records": []
+  "updatedAt": "2026-11-24T13:03:35.975Z",
+  "records": [
+    {
+      "id": "patch-2-2-16-passive-primal-pact",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Passive - Primal Pact",
+      "skillChanges": [
+        {
+          "skill": "Skill 1 - Feral Swipe",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 2 - Claw Strike",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Ultimate - Savage Maul",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 1 - Volley Shot",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Controls Optimizations",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Stat Adjustments",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 2 - Slide",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Controls Optimizations",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Mechanics Optimizations",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Stat Adjustments",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Ultimate - Worldie",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Mechanics Optimizations",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Stat Adjustments",
+          "marker": null,
+          "changeType": "ADJUSTMENT"
+        }
+      ],
+      "excerpt": "[Passive - Primal Pact]\nMasha has 3 HP bars and dies only when the last one is depleted. Masha gains Feral when dealing damage to heroes or creeps. Feral converts to HP when out of combat. Masha leaves a Wound on the enemy when dealing skill damage to them. Attacking again with a Basic Attack from the direction of the Wound will break it, putting Masha into the Feral state. While in the Feral state, her next 3 Basic Attacks become wide-range claw strikes, and she gains massive Resilience, Attack Speed, and Movement Speed.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-aulus",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Aulus",
+      "skillChanges": [
+        {
+          "skill": "Attributes",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Aulus] (↑)\nAulus takes too long to ramp up, struggles to finish off enemies, and lacks survivability in extended fights. We're addressing these issues by accelerating his ramp-up, condensing his damage into a shorter window, and improving his HP Regen.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-argus",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Argus",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Attributes",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Argus] (↑)\nBased on your feedback, we've decided to make another round of balance adjustments and gameplay improvements to Argus.\nArgus can now trigger Demonic Slash more often and stun enemies with Skill 2. The increased Ultimate damage helps him counterattack or secure kills.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-aldous",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Aldous",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        }
+      ],
+      "excerpt": "[Aldous] (↑)\nExp Lane heroes need to serve as a primary force in early-game skirmishes. Aldous's reliance on Skill 1 stacks for damage forced him to farm passively in the early game, leaving him completely out of sync with the team's pace. To boost his early-game combat capability and income while keeping his core playstyle intact, we've made the following adjustments.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-lukas",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Lukas",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 1",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Lukas] (↑)\nLukas was slightly weak in the Exp Lane but too strong as a jungler. To make him stronger in the Exp Lane while preserving his jungler playstyle, we've made some adjustments to him.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-classic-zilong",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Classic Zilong",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Classic Zilong] (↓)\nWe've noticed that Classic Zilong was a bit too strong, even proving hard to handle in Classic mode. As a result, we've reduced his damage and how often he gains Control Immunity.\nThat said. Even after these adjustments, Classic Zilong can still pick off enemy heroes amid the chaos of battle.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-classic-akai",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Classic Akai",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Classic Akai] (↑)\nWe've slightly increased Classic Akai's damage and adjusted his Ultimate's knockback frequency to match that of the current Akai.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-odette",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Odette",
+      "skillChanges": [
+        {
+          "skill": "Ultimate",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        }
+      ],
+      "excerpt": "[Odette] (~)\nTo make Odette feel more like a graceful dancer, she can now move freely at a slightly reduced speed while casting her Ultimate.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-sun",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Sun",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 1 & 2",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Skill 4",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        }
+      ],
+      "excerpt": "[Sun] (~)\nWe've noticed that roaming Sun takes too many resources away from his teammates, negatively affecting their experience. We've therefore made targeted adjustments to rein in his roaming build while minimizing the impact on his performance in other lanes.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-marcel",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Marcel",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Marcel] (~)\nImproved Marcel's skill synergy with other heroes, allowing him to work better with a wider range of heroes. As a balance adjustment, we've slightly reduced his early-game damage and skill cast frequency. Marcel can now interrupt skills that require selecting a target location before dealing damage (e.g., Eudora's Ultimate and Vexana's Skill 2).",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-kalea",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Kalea",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Ultimate",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        },
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Kalea] (↑)\nKalea's damage and survivability as a Fighter-Support have both fallen short this patch, making her one of the weakest supports right now. To address this, we've decided to give her a comprehensive buff so she can truly perform as a Fighter-Support.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-kadita",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Kadita",
+      "skillChanges": [
+        {
+          "skill": "Attributes",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Kadita] (~)\nIncreased Kadita's Movement Speed when roaming to the side lane in the early-to-mid game.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-hylos",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Hylos",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "~",
+          "changeType": "ADJUSTMENT"
+        }
+      ],
+      "excerpt": "[Hylos] (~)\nHylos's previous passive effects were underwhelming, so we've adjusted them to make his growth attributes more consistent.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-cici",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Cici",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Cici] (↑)\nSlightly increased the hero's early-to-mid-game damage against high-HP units, the speed of killing the EXP Crab in the early game, and sustainability in team fights.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-melissa",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Melissa",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Melissa] (↓)\nMelissa's Skill 1 provided too much Attack Speed for too long, while Muddles summoned by Skill 2 dealt excessive Basic Attack damage. We've reduced Skill 1's Attack Speed bonus and duration, as well as Muddles' damage transfer ratio and the percentage of Attack Effects inherited.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-miya",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Miya",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↓",
+          "changeType": "NERF"
+        },
+        {
+          "skill": "Skill 1",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Miya] (↓)\nMiya's team fight damage and farming speed in the current patch exceeded expectations. We've fixed an issue where Moonlight Shadow's Split Arrow dealt abnormal damage and incorrectly triggered Attack Effects, and slightly reduced Miya's damage to single targets.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-hanabi",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Hanabi",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Hanabi](↓)\nHanabi dealt excessive damage to a single target through consecutive Petal Blade bounces in small-scale team fights. To preserve her single-target poke during the laning phase, we haven't changed her base bounce damage. Instead, we've added a bounce damage falloff: when a Basic Attack or skill bounces repeatedly hits the same target, subsequent bounces deal less damage, limiting her sustained output against a single target within a short time.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-yi-sun-shin",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Yi Sun-shin",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Yi Sun-shin] (↓)\nYi Sun-shin's overall mobility was too high, so we've increased Skill 1's cooldown to limit his dash frequency.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-alpha",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Alpha",
+      "skillChanges": [
+        {
+          "skill": "Passive",
+          "marker": "↑",
+          "changeType": "BUFF"
+        },
+        {
+          "skill": "Skill 2",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Alpha] (↑)\nAlpha's early-game laning was relatively weak, so we've adjusted his Passive to scale with Total Physical Attack, improving his early- to mid-game performance. We've also optimized Skill 2's Regen mechanics by increasing its base HP recovered per hit and reducing the additional HP recovered per hit, improving its sustain when hitting a single target.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-kagura",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Kagura",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Kagura] (↑)\nImproved the feel of controlling the Seimei Umbrella when Kagura repositions in battle.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-edith",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Edith",
+      "skillChanges": [],
+      "excerpt": "[Edith] (↓)\nReverted skill values to match those outside the Mythical Honor Battlefield.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-karina",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Karina",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Karina] (↑)\nWe aim to increase Karina's Skill 1 usage frequency and improve the effectiveness of her Enhanced Basic Attack.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-paquito",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "NERF",
+      "heroName": "Paquito",
+      "skillChanges": [
+        {
+          "skill": "Enhanced Skill 2",
+          "marker": "↓",
+          "changeType": "NERF"
+        }
+      ],
+      "excerpt": "[Paquito] (↓)\nTo prevent Paquito from snowballing too quickly and zoning enemies out of lane, we've slightly reduced his early-to-mid-game burst damage.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-kaja",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Kaja",
+      "skillChanges": [
+        {
+          "skill": "Skill 1",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Kaja] (↑)\nSlightly increased Kaja's HP Regen.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-tigreal",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BUFF",
+      "heroName": "Tigreal",
+      "skillChanges": [
+        {
+          "skill": "Skill 2",
+          "marker": "↑",
+          "changeType": "BUFF"
+        }
+      ],
+      "excerpt": "[Tigreal] (↑)",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-revealing-wisps",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Revealing Wisps",
+      "skillChanges": [],
+      "excerpt": "[Revealing Wisps]\nPickable Vision Wisps are available across the map. Upon picking one up, the wisp circles around the hero for several seconds. If there are hidden enemy heroes within a large range, the wisp will move to their location and reveal them for several seconds.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-healing-turtle",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Healing Turtle",
+      "skillChanges": [],
+      "excerpt": "[Healing Turtle]\nDefeating the Turtle no longer grants a shield. Instead, an allied Turtle will spawn on the enemy's strongest lane to help push it. Allied heroes near the allied Turtle will recover HP rapidly and gain Turtle companions to help push turrets.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-golden-turret",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Golden Turret",
+      "skillChanges": [],
+      "excerpt": "[Golden Turret]\nGreatly increased the Gold shared to the entire team when any Turret is destroyed. Inner Turret and Base Turret HP are also increased.\nAdjusted Turret Interactions for Enhanced Basic Attacks",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-hero-enhanced-basic-attacks",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Hero Enhanced Basic Attacks",
+      "skillChanges": [],
+      "excerpt": "[Hero Enhanced Basic Attacks]\nAll heroes' Enhanced Basic Attacks triggered by their own skills can now hit Turrets and apply their HP Regen effects.\nAny exceptions will be clearly noted in the corresponding skill description.\nEnhanced Basic Attacks from Sun, Argus, Gusion, Thamuz, Dyrroth, and Masha can now trigger HP Regen effects when attacking Turrets.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-other-enhanced-basic-attacks",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Other Enhanced Basic Attacks",
+      "skillChanges": [],
+      "excerpt": "[Other Enhanced Basic Attacks]\nEnhanced Basic Attack effects from Emblems, Battle Spells, and Equipment cannot trigger when attacking Turrets.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-quantum-charge",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Quantum Charge",
+      "skillChanges": [],
+      "excerpt": "[Quantum Charge]\nCannot trigger when attacking Turrets.\nWhen using Inspire to attack Turrets, the Attack Speed boost and defense-ignoring effect still apply, but the HP Regen effect will not trigger.\nControl Settings Update\nWe are now factoring in the attacker's Penetration along with the target's Defense and HP to prioritize locking onto the target that is actually the easiest to kill, rather than just the one with the lowest HP.\nAs a result, in the Targeting Priority options, \"Lowest HP\" has been optimized to \"Lowest Effective HP\".\nSpecial Note: Since a large portion of Karina, Karrie, Lesley, and Thamuz's damage is True Damage, they will continue to use the \"Lowest HP\" targeting rule even when \"Lowest Effective HP\" is selected.\nThe original \"Closest Target\" and \"Lowest HP Percent\" options remain unchanged. Heroes using these options will not be affected.\nBasic Attack Targeting Optimizations\nWe've optimized the targeting mechanics for Basic Attack pursuit, reducing cases where ranged heroes repeatedly switch targets between minions and enemy heroes when pursuing enemies outside their Basic Attack range.\nAfter a Basic Attack hits a hero, tapping the Basic Attack button repeatedly within a short time will now prioritize pursuing and re-attacking that same target, unless a higher-priority enemy hero is within Basic Attack range.\nMovement Control Optimizations\nAdded a landing indicator for all dash skills passing through obstacles.\nSanctum Island Map Updates\nWe've fully revamped the art assets for Sanctum Island's scene, lord, and base. The new map now offers better visuals while keeping performance nearly on par with the original. This update takes effect immediately, so please make sure all resources are downloaded before entering the game for the complete experience.\nSimplified Hero Skill Descriptions\nTo reduce the length of hero skill descriptions and improve readability, we've replaced some commonly used attributes (Attack, Defense, and Max HP) with simple and intuitive icons.\nOther",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-tab-and-content-adjustments",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Tab and Content Adjustments",
+      "skillChanges": [],
+      "excerpt": "[Tab and Content Adjustments]\nThe \"Announcements\" tab will be removed. Important announcements, including patch notees, monthly events, and balance adjustments, will now be moved to the \"News\" tab.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-announcement-notification-update",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Announcement Notification Update",
+      "skillChanges": [],
+      "excerpt": "[Announcement Notification Update]\nAnnouncements will no longer use red dot badges, including those carried over to other menu icons. Announcements requiring special attention will instead be marked with a flame icon.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-read-announcement-sorting-update",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Read Announcement Sorting Update",
+      "skillChanges": [],
+      "excerpt": "[Read Announcement Sorting Update]\nOnce read, an announcement will automatically move to the bottom of the \"News\" tab, making unread announcements easier to find.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-security-announcement-display-update",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Security Announcement Display Update",
+      "skillChanges": [],
+      "excerpt": "[Security Announcement Display Update]\nSecurity announcements and related content will be temporarily removed. We plan to make them available through other systems in a future patch.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-hero-balance-adjustments",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Hero Balance Adjustments",
+      "skillChanges": [],
+      "excerpt": "[Hero Balance Adjustments]\nBased on recent Brawl hero win and pick rates, we've made balance adjustments.\n[Dyrroth] (↓): DMG +14% >> +8%, DMG Taken -10% >> -6%\n[Barats] (↓): DMG Taken +2% >> +10%\n[Sora] (↓): DMG Taken +6% >> +12%\n[Hanabi] (↓): DMG Taken +18% >> +20%\n[Martis] (↓): (New) DMG Taken +6%\n[Guinevere] (↓): DMG Taken -20% >> -14%\n[Beatrix] (↓): (New) DMG -6%\n[Aldous] (↓): DMG Taken -16% >> -12%\n[Minotaur] (↓): DMG Taken +4% >> +8%\n[Miya] (↓): (New) DMG Taken +4%\n[Marcel] (↓): (New) DMG Taken +4%\n[Edith] (↓): DMG Taken +2% >> +4%\n[Irithel] (↓): (New) DMG Taken +4%\n[Esmeralda] (↓): (New) DMG -4%\n[Grock] (↓): DMG Taken -20% >> -16%\n[Karrie] (↓): (New) DMG -4%\n[Chip] (↑): DMG +4% >> +6%\n[Granger] (↑): DMG -4% >> -2%, DMG Taken -8% >> -10%\n[X.Borg] (↑): (New) DMG Taken -4%\n[Pharsa] (↑): DMG -6% >> -2%\n[Kaja] (↑): DMG +10% >> +12%, DMG Taken -10% >> -12%\n[Joy] (↑): DMG +8% >> +10%, DMG Taken -8% >> -12%\n[Nolan] (↑): DMG Taken -16% >> -20%\n[Harley] (↑): DMG Taken -6% >> -14%\n[Uranus] (↑): DMG Taken +20% >> +10%\n[Kalea] (↑): DMG +14% >> +18%, DMG Taken -8% >> -12%\n[Hirara] (↑): DMG Taken -6% >> -14%\n[Valentina] (↑): (New) DMG Taken -10%\n[Zhuxin] (↑): DMG +10% >> +16%, DMG Taken -12% >> -16%\n[Franco] (↑): Greatly reduced skill cooldowns.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-bug-fixes",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "ADJUSTMENT",
+      "heroName": "Bug Fixes",
+      "skillChanges": [],
+      "excerpt": "[Bug Fixes]\nFixed an issue that caused abnormal camera behavior for enemies hit when Yin cast or recast his Ultimate.\nMobile Legends: Bang Bang\nMobile Legends: Bang Bang Official Website\nAccept cookies from Moonton on this browser?\nWe use cookies and similar technologies to operate and improve your browsing experience, analyse and measure how our services are used, market our website and measure the effectiveness of such campaigns. By clicking \"Accept All\" below, you are giving us consent to use all cookies, including non-essential cookies. You may decline all non-essential cookies by clicking the \"Reject All\"to your left. Go to our Cookie Policy to learn how we use cookies and similar technologies and \"Cookie Settings\" to learn how to manage your cookie preferences at any time.\nAccept All\nReject All\nCookie Settings\nPrivacy Policy Update\nWe are updating our Terms of Service and Privacy Policy to include more information about:\n- how we use your information;\n- how we share your information; and\n- where we store and how we transfer your information.\nClick here to review our updated Terms of Service and Privacy Policy",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-masha",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "REVAMP",
+      "heroName": "Masha",
+      "skillChanges": [],
+      "excerpt": "10th Anniversary Revamped Hero: Wild-oats Fist - Masha\nHero Feature: A Berserker who enters the Feral state by breaking the enemy's wound.\nMasha's core gameplay has been revamped. We want her to thrive as a high-skill ceiling Berserker capable of sustained combat, rather than an Assassin limited to split-pushing or burst damage.\n[Passive - Primal Pact]\nMasha has 3 HP bars and dies only when the last one is depleted. Masha gains Feral when dealing damage to heroes or creeps. Feral converts to HP when out of combat. Masha leaves a Wound on the enemy when dealing skill damage to them. Attacking again with a Basic Attack from the direction of the Wound will break it, putting Masha into the Feral state. While in the Feral state, her next 3 Basic Attacks become wide-range claw strikes, and she gains massive Resilience, Attack Speed, and Movement Speed.\n[Skill 1 - Feral Swipe]\nMasha releases energy forward, dealing Physical Damage to enemies in its path and slowing enemy heroes.\n[Skill 2 - Claw Strike]",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-bruno",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "REVAMP",
+      "heroName": "Bruno",
+      "skillChanges": [],
+      "excerpt": "10th Anniversary Revamped Hero: The Protector - Bruno\nHero Feature: A Marksman who deals massive damage to enemies by continuously kicking powerballs.\nWe've made several optimizations to Bruno. While preserving his core identity, we've improved his controls and made adjustments across his kit. These changes make him a more agile and formidable striker.\n[Skill 1 - Volley Shot] (~)\nWe believe the original Volley Shot placed too much burden on players. In the current environment, players might fail to pick up the Powerball even after planning their movement and positioning correctly. Therefore, we've optimized it.\n[Controls Optimizations]\nThe landing distance of Powerball now scales with Bruno's Movement Speed.\nThe Movement Speed boost is now granted when kicking the Powerball instead of upon dealing damage.",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-battlefield-adjustments",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BATTLEFIELD",
+      "heroName": null,
+      "skillChanges": [],
+      "excerpt": "3. Battlefield Adjustments\nIn-Match Economy\nWe've found that matches in the current patch are too fast-paced, making it difficult for teams that fall behind to make a comeback. To address this, we've adjusted battlefield gold income and comeback mechanics for disadvantaged teams.\n[Creep] (↓)\nReduced the Base Gold of the Horned Lizard, Fire Beetle, and Lava Golem by 13%\n[Team Bounty] (~)\nGold Deficit Required to Gain Bonus Gold from Enemy Hero Kills: 2,000 >> 1,500\n[Minions] (↓)\nSlightly reduced minions' Gold reward growth over time.\nMythical Honor Battlefield\n[Edith] (↓)\nReverted skill values to match those outside the Mythical Honor Battlefield.\n[Tigreal] (↑)\n[Skill 2] (↑)\nCooldown: 16-13s >> 13-10s\nMap Changes Update\nThe 2026 Annual Map Change officially begins on 09/28 (Server Time). This update introduces [Revealing Wisps], [Healing Turtle], and [Golden Turret], along with [Flying Cloud], which now features an upgraded art visual effect. Once this goes live, you can check out the full details in the in-game Battlefield Overview tab. Here's a quick overview:\n[Revealing Wisps]\nPickable Vision Wisps are available across the map. Upon picking one up, the wisp circles around the hero for several seconds. If there are hidden enemy heroes within a large range, the wisp will move to their location and reveal them for several seconds.\n[Healing Turtle]\nDefeating the Turtle no longer grants a shield. Instead, an allied Turtle will spawn on the enemy's strongest lane to help push it. Allied heroes near the allied Turtle will recover HP rapidly and gain Turtle companions to help push turrets.\n[Golden Turret]\nGreatly increased the Gold shared to the entire team when any Turret is destroyed. Inner Turret and Base Turret HP are also increased.\nAdjusted Turret Interactions for Enhanced Basic Attacks",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-creep",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BATTLEFIELD",
+      "heroName": null,
+      "skillChanges": [],
+      "excerpt": "[Creep] (↓)\nReduced the Base Gold of the Horned Lizard, Fire Beetle, and Lava Golem by 13%\n[Team Bounty] (~)\nGold Deficit Required to Gain Bonus Gold from Enemy Hero Kills: 2,000 >> 1,500\n[Minions] (↓)\nSlightly reduced minions' Gold reward growth over time.\nMythical Honor Battlefield\n[Edith] (↓)",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-team-bounty",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BATTLEFIELD",
+      "heroName": null,
+      "skillChanges": [],
+      "excerpt": "[Team Bounty] (~)\nGold Deficit Required to Gain Bonus Gold from Enemy Hero Kills: 2,000 >> 1,500\n[Minions] (↓)\nSlightly reduced minions' Gold reward growth over time.\nMythical Honor Battlefield\n[Edith] (↓)\nReverted skill values to match those outside the Mythical Honor Battlefield.\n[Tigreal] (↑)",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    },
+    {
+      "id": "patch-2-2-16-minions",
+      "patchVersion": "2.2.16",
+      "serverScope": "UNCLASSIFIED",
+      "category": "BATTLEFIELD",
+      "heroName": null,
+      "skillChanges": [],
+      "excerpt": "[Minions] (↓)\nSlightly reduced minions' Gold reward growth over time.\nMythical Honor Battlefield\n[Edith] (↓)\nReverted skill values to match those outside the Mythical Honor Battlefield.\n[Tigreal] (↑)\n[Skill 2] (↑)\nCooldown: 16-13s >> 13-10s",
+      "sourceUrl": "https://www.mobilelegends.com/news/articleldetail?newsid=3503357",
+      "sourceType": "OFFICIAL_PATCH_NOTE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.82
+    }
+  ]
 }

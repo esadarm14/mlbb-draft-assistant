@@ -1,11 +1,448 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-21T00:00:00.000Z",
+  "updatedAt": "2026-11-24T13:03:35.975Z",
   "records": [
-    {"id":"kalea","heroId":null,"name":"Kalea","officialPortrait":null,"officialRole":["Support","Fighter"],"heroSpecialty":["Control","Regen"],"releaseStatus":"UNVERIFIED OFFICIAL DATA","patchVersion":null,"lastUpdated":"2026-11-21","sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75,"notes":"Nama, role, dan specialty terlihat pada beranda resmi; ID hero, portrait terstruktur, status rilis, dan patch berlaku tidak dipublikasikan pada cuplikan yang diperiksa."},
-    {"id":"hirara","heroId":null,"name":"Hirara","officialPortrait":null,"officialRole":["Assassin"],"heroSpecialty":["Chase","Finisher"],"releaseStatus":"UNVERIFIED OFFICIAL DATA","patchVersion":null,"lastUpdated":"2026-11-21","sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75,"notes":"Nama, role, dan specialty terlihat pada beranda resmi; ID hero, portrait terstruktur, status rilis, dan patch berlaku tidak dipublikasikan pada cuplikan yang diperiksa."},
-    {"id":"marcel","heroId":null,"name":"Marcel","officialPortrait":null,"officialRole":["Support"],"heroSpecialty":["Crowd Control","Support"],"releaseStatus":"UNVERIFIED OFFICIAL DATA","patchVersion":null,"lastUpdated":"2026-11-21","sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75,"notes":"Nama, role, dan specialty terlihat pada beranda resmi; ID hero, portrait terstruktur, status rilis, dan patch berlaku tidak dipublikasikan pada cuplikan yang diperiksa."},
-    {"id":"sora","heroId":null,"name":"Sora","officialPortrait":null,"officialRole":["Fighter","Assassin"],"heroSpecialty":["Charge","Burst"],"releaseStatus":"UNVERIFIED OFFICIAL DATA","patchVersion":null,"lastUpdated":"2026-11-21","sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75,"notes":"Nama, role, dan specialty terlihat pada beranda resmi; ID hero, portrait terstruktur, status rilis, dan patch berlaku tidak dipublikasikan pada cuplikan yang diperiksa."},
-    {"id":"obsidia","heroId":null,"name":"Obsidia","officialPortrait":null,"officialRole":["Marksman"],"heroSpecialty":["Finisher","Damage"],"releaseStatus":"UNVERIFIED OFFICIAL DATA","patchVersion":null,"lastUpdated":"2026-11-21","sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75,"notes":"Nama, role, dan specialty terlihat pada beranda resmi; ID hero, portrait terstruktur, status rilis, dan patch berlaku tidak dipublikasikan pada cuplikan yang diperiksa."}
+    {
+      "id": "kalea",
+      "heroId": null,
+      "name": "Kalea",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/3a7693b9a565b4e1d67d57ae73eb5297.webp",
+      "officialRole": [
+        "Support",
+        "Fighter"
+      ],
+      "heroSpecialty": [
+        "Control",
+        "Regen"
+      ],
+      "heroSkills": [
+        {
+          "name": "Surge of Life",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "After casting a skill, Kalea creates a Water Zone on the ground. When Kalea casts a skill within this zone, she absorbs it to enhance her next 3 Basic Attacks with different effects and gains 60% Movement Speed for 1s:",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "First Basic Attack: Kalea dashes to the target, dealing (+100% Total Physical Attack) Physical Damage.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Second Basic Attack: Kalea unleashes a flurry of attacks, dealing 140 (+8*Hero Level) (+100% Total Physical Attack) Physical Damage and recovering (+12% Max HP) (+80% Total Magic Power) HP to herself and the nearby ally with the lowest HP.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Third Basic Attack: Kalea strikes around the target with her tail, dealing 120 (+12*Hero Level) (+100% Total Physical Attack) Physical Damage and creating a new Water Zone. (Enhanced Basic Attacks are not affected by Attack Speed.)",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Control effects can affect Kalea during the third Enhanced Basic Attack, but cannot interrupt it.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Wavebreaker",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Kalea slams her fist into the ground, creating a wave that deals 200 (+5% Max HP) Physical Damage to nearby enemies and slows them by 40% for 1.5s.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Tidal Strike",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Kalea charges forward and body slams the first enemy hero she encounters, knocking them airborne for 0.6s (unaffected by Resilience) while dealing 150 (+60% Total Physical Attack) Physical Damage.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "If she collides with an obstacle or touches the edge of a Water Zone during her charge, Kalea will leap into the air. Cast the skill again to slam down at a target location, dealing 150 (+60% Total Physical Attack) Physical Damage and knocking enemies airborne for 0.6s (unaffected by Resilience).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Tsunami Slam",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Kalea grabs an enemy hero with her tail and slams them down in the Joystick's direction (drag the Joystick to change landing spot). She gains Control Immunity during this process. Upon landing, deals 300 (+14% Max HP) Physical Damage to the target and nearby enemies.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Surge of Life\nAfter casting a skill, Kalea creates a Water Zone on the ground. When Kalea casts a skill within this zone, she absorbs it to enhance her next 3 Basic Attacks with different effects and gains 60% Movement Speed for 1s:\nFirst Basic Attack: Kalea dashes to the target, dealing (+100% Total Physical Attack) Physical Damage.\nSecond Basic Attack: Kalea unleashes a flurry of attacks, dealing 140 (+8*Hero Level) (+100% Total Physical Attack) Physical Damage and recovering (+12% Max HP) (+80% Total Magic Power) HP to herself and the nearby ally with the lowest HP.\nThird Basic Attack: Kalea strikes around the target with her tail, dealing 120 (+12*Hero Level) (+100% Total Physical Attack) Physical Damage and creating a new Water Zone. (Enhanced Basic Attacks are not affected by Attack Speed.)\nControl effects can affect Kalea during the third Enhanced Basic Attack, but cannot interrupt it.\nWavebreaker\nKalea slams her fist into the ground, creating a wave that deals 200 (+5% Max HP) Physical Damage to nearby enemies and slows them by 40% for 1.5s.\nTidal Strike\nKalea charges forward and body slams the first enemy hero she encounters, knocking them airborne for 0.6s (unaffected by Resilience) while dealing 150 (+60% Total Physical Attack) Physical Damage.\nIf she collides with an obstacle or touches the edge of a Water Zone during her charge, Kalea will leap into the air. Cast the skill again to slam down at a target location, dealing 150 (+60% Total Physical Attack) Physical Damage and knocking enemies airborne for 0.6s (unaffected by Resilience).\nTsunami Slam\nKalea grabs an enemy hero with her tail and slams them down in the Joystick's direction (drag the Joystick to change landing spot). She gains Control Immunity during this process. Upon landing, deals 300 (+14% Max HP) Physical Damage to the target and nearby enemies.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    },
+    {
+      "id": "hirara",
+      "heroId": null,
+      "name": "Hirara",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/e2c9c365b95a4de69fa98b2ce9712588.webp",
+      "officialRole": [
+        "Assassin"
+      ],
+      "heroSpecialty": [
+        "Chase",
+        "Finisher"
+      ],
+      "heroSkills": [
+        {
+          "name": "Twin Fans: Ukifune",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hirara has only two skills, representing her two weapons: Meisen-e and Kaerazu. Drag one skill onto the other to cast a combo skill.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hirara has 2 Crimson / Death Energy. Casting a combo skill consumes 1 Crimson / Death Energy. Energy recovery time is the same as the cooldown of Meisen-e. Consuming Energy interrupts the recovery process.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hirara only deals 30 (+4*Hero Level)% damage to minions.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Meisen-e",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hirara rides the waves using Meisen-e, performing up to two joystick dashes (the first dash goes in her facing direction). She deals 150 (+50% Extra Physical Attack) Physical Damage to enemies hit.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Kaerazu",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hirara uses Kaerazu to unleash the Crimson Maple, dealing 165 (+42% Extra Physical Attack) Physical Damage to enemies in a fan-shaped area.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "After a short delay, she deals damage again at the target location, dealing 2 times the initial Crimson Maple damage.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Twin Fans: Ukifune\nHirara has only two skills, representing her two weapons: Meisen-e and Kaerazu. Drag one skill onto the other to cast a combo skill.\nHirara has 2 Crimson / Death Energy. Casting a combo skill consumes 1 Crimson / Death Energy. Energy recovery time is the same as the cooldown of Meisen-e. Consuming Energy interrupts the recovery process.\nHirara only deals 30 (+4*Hero Level)% damage to minions.\nMeisen-e\nHirara rides the waves using Meisen-e, performing up to two joystick dashes (the first dash goes in her facing direction). She deals 150 (+50% Extra Physical Attack) Physical Damage to enemies hit.\nKaerazu\nHirara uses Kaerazu to unleash the Crimson Maple, dealing 165 (+42% Extra Physical Attack) Physical Damage to enemies in a fan-shaped area.\nAfter a short delay, she deals damage again at the target location, dealing 2 times the initial Crimson Maple damage.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    },
+    {
+      "id": "marcel",
+      "heroId": null,
+      "name": "Marcel",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/24c43180662d27aa5b62106b596fa4f7.webp",
+      "officialRole": [
+        "Support"
+      ],
+      "heroSpecialty": [
+        "Crowd Control",
+        "Support"
+      ],
+      "heroSkills": [
+        {
+          "name": "Platinum Snap",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Marcel's split soul, Clemar, enters the camera to freeze the moment. His Basic Attacks deal 50 (+40% Total Physical Attack)(+40% Total Magic Defense)(+40% Total Physical Defense) Physical Damage. His Extra <1005> is converted into 1.5% <1999>.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Clemar automatically snaps photos of enemy heroes near Marcel, causing a brief Frozen Moment and dealing 20 (+ 5% of <1005>) True Damage (triggers Attack Effects). It also grants a shield of the same value to Marcel and a nearby allied hero. Cooldown: 12s per target.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Framed Moment",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Clemar focuses on an area around Marcel, slowing enemy heroes within by 60%.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "After 2.5s, he completes the shot, dealing 300 (+50% Total Physical Attack)(+120% Total Magic Defense)(+120% Total Physical Defense) Physical Damage to enemies within.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Tracking Shot",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Artist inspiration time! Marcel enters the Tracking Haste state for 3s, gaining 15% Movement Speed. This bonus increases to 75% when moving toward an enemy hero.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Use Again: Marcel dashes in the target direction, leaving a framing phantom behind while the Framed Moment area remains at the original location.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Golden Hour",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Marcel and Clemar perform a joint shoot. After a short delay, Clemar takes a wide-angle shot of the target area for 2s. During this time, Marcel enters the Tracking Haste state while inside the area. All other units in the area are put into a Frozen Moment and are immune to all effects except from Marcel. All projectiles are also frozen and will continue after a delay (targeted projectiles will deal 50% damage).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Golden Hour resets the cooldown of Platinum Snap for each enemy hero.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Allied heroes with the Platinum Snap shield can move freely within the area.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Platinum Snap\nMarcel's split soul, Clemar, enters the camera to freeze the moment. His Basic Attacks deal 50 (+40% Total Physical Attack)(+40% Total Magic Defense)(+40% Total Physical Defense) Physical Damage. His Extra <1005> is converted into 1.5% <1999>.\nClemar automatically snaps photos of enemy heroes near Marcel, causing a brief Frozen Moment and dealing 20 (+ 5% of <1005>) True Damage (triggers Attack Effects). It also grants a shield of the same value to Marcel and a nearby allied hero. Cooldown: 12s per target.\nFramed Moment\nClemar focuses on an area around Marcel, slowing enemy heroes within by 60%.\nAfter 2.5s, he completes the shot, dealing 300 (+50% Total Physical Attack)(+120% Total Magic Defense)(+120% Total Physical Defense) Physical Damage to enemies within.\nTracking Shot\nArtist inspiration time! Marcel enters the Tracking Haste state for 3s, gaining 15% Movement Speed. This bonus increases to 75% when moving toward an enemy hero.\nUse Again: Marcel dashes in the target direction, leaving a framing phantom behind while the Framed Moment area remains at the original location.\nGolden Hour\nMarcel and Clemar perform a joint shoot. After a short delay, Clemar takes a wide-angle shot of the target area for 2s. During this time, Marcel enters the Tracking Haste state while inside the area. All other units in the area are put into a Frozen Moment and are immune to all effects except from Marcel. All projectiles are also frozen and will continue after a delay (targeted projectiles will deal 50% damage).\nGolden Hour resets the cooldown of Platinum Snap for each enemy hero.\nAllied heroes with the Platinum Snap shield can move freely within the area.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    },
+    {
+      "id": "sora",
+      "heroId": null,
+      "name": "Sora",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/bc8375c54a43cc02fedcc304033c23bb.webp",
+      "officialRole": [
+        "Fighter",
+        "Assassin"
+      ],
+      "heroSpecialty": [
+        "Charge",
+        "Burst"
+      ],
+      "heroSkills": [
+        {
+          "name": "Mystic Surge",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Sora can ascend to Thunder or Torrent by using his Ultimate. After ascending, dealing damage to heroes or summoned units grants 1 stack of Cloudstep. Upon reaching 5 stacks, he unlocks his True Art.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Thunder: Adopts an assassin style, converting 30% <1005> into <1020> (Equal to 10% of <1005>).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Torrent: Adopts a tank style, converting 30% <1020> into <1005> (Gains 10 HP for every 1 Attack).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Sundering Strike",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Sora strikes twice, dealing 140 (+50% Total Physical Attack) Physical Damage, then lunges forward, dealing 240 (+5% Max HP) Physical Damage. He can dash after striking.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Windstride",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Sora leaps forward, dealing 140 (+55% Total Physical Attack) Physical Damage. If he hits an enemy hero or reaches max range, he slams the ground, dealing an additional 140 (+8% Max HP) Physical Damage and slowing them by 40% for 0.5s. Successful hits reduce the cooldown by 2s.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Shifting Skies",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Swipe left to ascend into Thunder for 10s. Sora gains a brief bonus Movement Speed and becomes untargetable. He then summons lightning to strike nearby enemies 3 time(s), each dealing 140 (+50% Total Physical Attack) Physical Damage.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Swipe right to ascend into Torrent for 10s. Sora gains Control Immunity. After a short delay, he pulls nearby enemies in and deals 250 (+8% Max HP) Physical Damage.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Mystic Surge\nSora can ascend to Thunder or Torrent by using his Ultimate. After ascending, dealing damage to heroes or summoned units grants 1 stack of Cloudstep. Upon reaching 5 stacks, he unlocks his True Art.\nThunder: Adopts an assassin style, converting 30% <1005> into <1020> (Equal to 10% of <1005>).\nTorrent: Adopts a tank style, converting 30% <1020> into <1005> (Gains 10 HP for every 1 Attack).\nSundering Strike\nSora strikes twice, dealing 140 (+50% Total Physical Attack) Physical Damage, then lunges forward, dealing 240 (+5% Max HP) Physical Damage. He can dash after striking.\nWindstride\nSora leaps forward, dealing 140 (+55% Total Physical Attack) Physical Damage. If he hits an enemy hero or reaches max range, he slams the ground, dealing an additional 140 (+8% Max HP) Physical Damage and slowing them by 40% for 0.5s. Successful hits reduce the cooldown by 2s.\nShifting Skies\nSwipe left to ascend into Thunder for 10s. Sora gains a brief bonus Movement Speed and becomes untargetable. He then summons lightning to strike nearby enemies 3 time(s), each dealing 140 (+50% Total Physical Attack) Physical Damage.\nSwipe right to ascend into Torrent for 10s. Sora gains Control Immunity. After a short delay, he pulls nearby enemies in and deals 250 (+8% Max HP) Physical Damage.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    },
+    {
+      "id": "obsidia",
+      "heroId": null,
+      "name": "Obsidia",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/9ea138369ca4a37b4806ac64998df054.webp",
+      "officialRole": [
+        "Marksman"
+      ],
+      "heroSpecialty": [
+        "Finisher",
+        "Damage"
+      ],
+      "heroSkills": [
+        {
+          "name": "Return to Bone",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Obsidia gains Bone Energy whenever she deals damage. Basic Attacks grant 1 Energy against non-hero units and 2 against hero units or Turrets. Skills grant Energy equal to 3 times the amount granted by Basic Attacks against the same unit type. No Energy is gained from hitting creeps.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "When Bone Energy reaches 30, it forms a Bone Shard, up to 25 shards. When Obsidia uses Basic Attacks, all Bone Shards strike the target, each dealing (+6% Total Physical Attack) Physical Damage and inheriting 6% Attack Effects.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Killing an enemy hero directly grants 1 Bone Shard(s).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Obsidia's Basic Attacks deal 70 (+70% Total Physical Attack) Physical Damage, inheriting 100% Attack Effects.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Abyssal Bone Needle",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Obsidia launches an Abyssal Bone Needle, dealing 325 (+80% Total Physical Attack) Physical Damage to enemies hit and triggering Return to Bone on the first enemy hero struck.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Phantom Shadowmeld",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Obsidia descends into the Abyss and enters Shadowmeld Form, gaining 500% Movement Speed for 0.3s.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Hunt of Bone",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Obsidia shoots Bones of Wrath in the target direction, dealing 125 (+60% Extra Physical Attack) Physical Damage and briefly stunning the first enemy hero hit before pulling herself to the target. The Bones of Wrath tethers Obsidia to the enemy, preventing her from moving more than 4 units away. While tethered, the enemy cannot use mobility skills, and their movement drags Obsidia along. Obsidia also gains 5 temporary Bone Shards stacks and a shield equal to 200 (+ 25 per Bone Shard stack). This effect lasts 3s.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "While tethered, Obsidia can move through obstacles and use Basic Attacks while moving. Phantom Shadowmeld is also enhanced: its duration increases to 1s, and its cooldown is reduced to 33%.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Return to Bone\nObsidia gains Bone Energy whenever she deals damage. Basic Attacks grant 1 Energy against non-hero units and 2 against hero units or Turrets. Skills grant Energy equal to 3 times the amount granted by Basic Attacks against the same unit type. No Energy is gained from hitting creeps.\nWhen Bone Energy reaches 30, it forms a Bone Shard, up to 25 shards. When Obsidia uses Basic Attacks, all Bone Shards strike the target, each dealing (+6% Total Physical Attack) Physical Damage and inheriting 6% Attack Effects.\nKilling an enemy hero directly grants 1 Bone Shard(s).\nObsidia's Basic Attacks deal 70 (+70% Total Physical Attack) Physical Damage, inheriting 100% Attack Effects.\nAbyssal Bone Needle\nObsidia launches an Abyssal Bone Needle, dealing 325 (+80% Total Physical Attack) Physical Damage to enemies hit and triggering Return to Bone on the first enemy hero struck.\nPhantom Shadowmeld\nObsidia descends into the Abyss and enters Shadowmeld Form, gaining 500% Movement Speed for 0.3s.\nHunt of Bone\nObsidia shoots Bones of Wrath in the target direction, dealing 125 (+60% Extra Physical Attack) Physical Damage and briefly stunning the first enemy hero hit before pulling herself to the target. The Bones of Wrath tethers Obsidia to the enemy, preventing her from moving more than 4 units away. While tethered, the enemy cannot use mobility skills, and their movement drags Obsidia along. Obsidia also gains 5 temporary Bone Shards stacks and a shield equal to 200 (+ 25 per Bone Shard stack). This effect lasts 3s.\nWhile tethered, Obsidia can move through obstacles and use Basic Attacks while moving. Phantom Shadowmeld is also enhanced: its duration increases to 1s, and its cooldown is reduced to 33%.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    },
+    {
+      "id": "zetian",
+      "heroId": null,
+      "name": "Zetian",
+      "officialPortrait": "https://akmweb.youngjoygame.com/web/gms/image/10cf23ade94859fd7f6a877c828c0131.webp",
+      "officialRole": [
+        "Mage"
+      ],
+      "heroSpecialty": [
+        "Damage",
+        "Crowd Control"
+      ],
+      "heroSkills": [
+        {
+          "name": "Celestial Armament",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Phoenix Crown: When Zetian hits enemy heroes with Phoenix Strike or Phoenix Descent, she gains 1% Spell Vamp for 5s (up to 10 stacks).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Celestial Robe: The power of the Phoenix periodically protects Zetian, knocking back and stunning any enemy hero who approaches her, dealing 90 (+10*Hero Level) (+50% Total Magic Power) Magic Damage. She also gains a 300 (+20*Hero Level) (+50% Total Magic Power) shield for 3s. Cooldown: 120s.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Phoenix Strike",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Zetian unleashes a Phoenix Wave in the target direction. If it hits an enemy, she automatically casts another wave (up to 3 times). Zetian can cast other skills during this time.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "The waves deal 150 (+50% Total Magic Power), 150 (+50% Total Magic Power), and 360 (+120% Total Magic Power) Magic Damage, respectively. The 3rd wave has a larger area and pulls enemies toward the cast direction (not considered a control effect).",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "The Spell Vamp ratio against minions is only 65%.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Phoenix Descent",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Zetian summons a Phoenix Spirit at the target location, dealing 150 (+45% Total Magic Power) Magic Damage and applying a brief 50% slow effect to enemies in the area. The Phoenix Spirit hovers at the location for 3s, dealing 20 (+10% Total Magic Power) Magic Damage every 0.5s and reducing enemies' <1070> by 10% while revealing their surrounding area.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "While the Phoenix Spirit is active, Zetian can use this skill again to command it to charge toward a designated location, dealing 150 (+45% Total Magic Power) Magic Damage and applying a brief 50% slow effect upon arrival.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Fury of the Phoenix",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Zetian calls upon her divine mandate and the hearts of her people, granting all allied heroes 40% Movement Speed that gradually decays over 3s, while bringing divine retribution upon all enemy heroes, dealing 400 (+100% Total Magic Power) Magic Damage and stunning them for 0.8s. Zetian gains vision of all enemy heroes during this time.",
+          "kind": "UNVERIFIED"
+        },
+        {
+          "name": "Zetian can cast other skills while channeling this skill.",
+          "kind": "UNVERIFIED"
+        }
+      ],
+      "heroSkillChanges": [],
+      "skillsText": "Celestial Armament\nPhoenix Crown: When Zetian hits enemy heroes with Phoenix Strike or Phoenix Descent, she gains 1% Spell Vamp for 5s (up to 10 stacks).\nCelestial Robe: The power of the Phoenix periodically protects Zetian, knocking back and stunning any enemy hero who approaches her, dealing 90 (+10*Hero Level) (+50% Total Magic Power) Magic Damage. She also gains a 300 (+20*Hero Level) (+50% Total Magic Power) shield for 3s. Cooldown: 120s.\nPhoenix Strike\nZetian unleashes a Phoenix Wave in the target direction. If it hits an enemy, she automatically casts another wave (up to 3 times). Zetian can cast other skills during this time.\nThe waves deal 150 (+50% Total Magic Power), 150 (+50% Total Magic Power), and 360 (+120% Total Magic Power) Magic Damage, respectively. The 3rd wave has a larger area and pulls enemies toward the cast direction (not considered a control effect).\nThe Spell Vamp ratio against minions is only 65%.\nPhoenix Descent\nZetian summons a Phoenix Spirit at the target location, dealing 150 (+45% Total Magic Power) Magic Damage and applying a brief 50% slow effect to enemies in the area. The Phoenix Spirit hovers at the location for 3s, dealing 20 (+10% Total Magic Power) Magic Damage every 0.5s and reducing enemies' <1070> by 10% while revealing their surrounding area.\nWhile the Phoenix Spirit is active, Zetian can use this skill again to command it to charge toward a designated location, dealing 150 (+45% Total Magic Power) Magic Damage and applying a brief 50% slow effect upon arrival.\nFury of the Phoenix\nZetian calls upon her divine mandate and the hearts of her people, granting all allied heroes 40% Movement Speed that gradually decays over 3s, while bringing divine retribution upon all enemy heroes, dealing 400 (+100% Total Magic Power) Magic Damage and stunning them for 0.8s. Zetian gains vision of all enemy heroes during this time.\nZetian can cast other skills while channeling this skill.",
+      "releaseStatus": "UNVERIFIED OFFICIAL DATA",
+      "patchVersion": null,
+      "lastUpdated": "2026-11-24",
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75,
+      "notes": "Diambil dari kartu yang tampil di beranda resmi. Halaman ini bukan roster lengkap; ID dan status rilis tidak ditebak."
+    }
   ]
 }

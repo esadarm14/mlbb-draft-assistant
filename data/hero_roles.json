@@ -1,11 +1,110 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-21T00:00:00.000Z",
+  "updatedAt": "2026-11-24T13:03:35.975Z",
   "records": [
-    {"heroId":"kalea","heroName":"Kalea","roles":["Support","Fighter"],"specialties":["Control","Regen"],"sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","patchVersion":null,"retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75},
-    {"heroId":"hirara","heroName":"Hirara","roles":["Assassin"],"specialties":["Chase","Finisher"],"sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","patchVersion":null,"retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75},
-    {"heroId":"marcel","heroName":"Marcel","roles":["Support"],"specialties":["Crowd Control","Support"],"sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","patchVersion":null,"retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75},
-    {"heroId":"sora","heroName":"Sora","roles":["Fighter","Assassin"],"specialties":["Charge","Burst"],"sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","patchVersion":null,"retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75},
-    {"heroId":"obsidia","heroName":"Obsidia","roles":["Marksman"],"specialties":["Finisher","Damage"],"sourceUrl":"https://www.mobilelegends.com/id/home","sourceType":"OFFICIAL_HERO_PAGE","patchVersion":null,"retrievalDate":"2026-11-21","verificationStatus":"PARTIALLY VERIFIED","confidenceLevel":0.75}
+    {
+      "heroId": "kalea",
+      "heroName": "Kalea",
+      "roles": [
+        "Support",
+        "Fighter"
+      ],
+      "specialties": [
+        "Control",
+        "Regen"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    },
+    {
+      "heroId": "hirara",
+      "heroName": "Hirara",
+      "roles": [
+        "Assassin"
+      ],
+      "specialties": [
+        "Chase",
+        "Finisher"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    },
+    {
+      "heroId": "marcel",
+      "heroName": "Marcel",
+      "roles": [
+        "Support"
+      ],
+      "specialties": [
+        "Crowd Control",
+        "Support"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    },
+    {
+      "heroId": "sora",
+      "heroName": "Sora",
+      "roles": [
+        "Fighter",
+        "Assassin"
+      ],
+      "specialties": [
+        "Charge",
+        "Burst"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    },
+    {
+      "heroId": "obsidia",
+      "heroName": "Obsidia",
+      "roles": [
+        "Marksman"
+      ],
+      "specialties": [
+        "Finisher",
+        "Damage"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    },
+    {
+      "heroId": "zetian",
+      "heroName": "Zetian",
+      "roles": [
+        "Mage"
+      ],
+      "specialties": [
+        "Damage",
+        "Crowd Control"
+      ],
+      "sourceUrl": "https://www.mobilelegends.com/id/home",
+      "sourceType": "OFFICIAL_HERO_PAGE",
+      "patchVersion": null,
+      "retrievalDate": "2026-11-24",
+      "verificationStatus": "PARTIALLY VERIFIED",
+      "confidenceLevel": 0.75
+    }
   ]
 }
