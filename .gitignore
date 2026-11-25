@@ -6,3 +6,8 @@ test-results/
 .env
 .env.*
 !.env.example
+.expo/
+dist/
+.gradle/
+android/.gradle/
+android/app/build/
