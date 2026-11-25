@@ -1,83 +1,56 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { Hero } from '../types';
-import { Colors, ROLE_COLORS } from '../theme/colors';
+"use client";
+import { useState } from "react";
+import type { Hero } from "@/lib/types";
 
-interface HeroAvatarProps {
-  hero: Hero;
-  size?: number;
-  showRoleBadge?: boolean;
-}
-
-export const HeroAvatar: React.FC<HeroAvatarProps> = ({
-  hero,
-  size = 44,
-  showRoleBadge = false,
-}) => {
-  const [hasError, setHasError] = useState(false);
-  const primaryRole = hero.roles[0] || 'Tank';
-  const roleColor = ROLE_COLORS[primaryRole] || Colors.gold;
-
-  const initials = hero.name
-    .split(' ')
-    .map(n => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
-  return (
-    <View style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}>
-      {!hasError && hero.portraitUrl ? (
-        <Image
-          source={{ uri: hero.portraitUrl }}
-          style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]}
-          onError={() => setHasError(true)}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={[styles.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: Colors.surfaceLight, borderColor: roleColor }]}>
-          <Text style={[styles.initials, { fontSize: size * 0.38, color: roleColor }]}>
-            {initials}
-          </Text>
-        </View>
-      )}
-
-      {showRoleBadge && (
-        <View style={[styles.roleDot, { backgroundColor: roleColor }]} />
-      )}
-    </View>
-  );
+const roleTheme: Record<string, { ring: string; bg: string; text: string }> = {
+  Tank: { ring: "ring-blue-400/50", bg: "from-blue-900/90 via-slate-800 to-slate-950", text: "text-blue-300" },
+  Fighter: { ring: "ring-red-400/50", bg: "from-rose-900/90 via-slate-800 to-slate-950", text: "text-rose-300" },
+  Assassin: { ring: "ring-purple-400/50", bg: "from-purple-900/90 via-slate-800 to-slate-950", text: "text-purple-300" },
+  Mage: { ring: "ring-indigo-400/50", bg: "from-indigo-900/90 via-slate-800 to-slate-950", text: "text-indigo-300" },
+  Marksman: { ring: "ring-amber-400/50", bg: "from-amber-900/90 via-slate-800 to-slate-950", text: "text-amber-300" },
+  Support: { ring: "ring-emerald-400/50", bg: "from-emerald-900/90 via-slate-800 to-slate-950", text: "text-emerald-300" },
 };
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-    backgroundColor: Colors.surfaceLight,
-    borderWidth: 1.5,
-    borderColor: Colors.surfaceBorder,
-    overflow: 'visible',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    backgroundColor: Colors.surfaceLight,
-  },
-  fallback: {
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initials: {
-    fontWeight: '800',
-  },
-  roleDot: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: Colors.background,
-  },
-});
+function canLoadImage(url?: string) {
+  if (!url) return false;
+  // Legacy svnres icon path returns 403 / ORB block in browsers; use monogram fallback directly.
+  if (url.includes("akmweb.youngjoygame.com/web/svnres/img/mlbb/hero/icon/")) return false;
+  return true;
+}
+
+export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; size?: number; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  const theme = roleTheme[hero.roles[0]] ?? {
+    ring: "ring-white/20",
+    bg: "from-slate-700 to-slate-900",
+    text: "text-[#f4c430]",
+  };
+  const showImg = canLoadImage(hero.portraitUrl) && !failed;
+  const initials = hero.name.slice(0, 2).toUpperCase();
+
+  return (
+    <div
+      className={`relative shrink-0 rounded-xl overflow-hidden bg-gradient-to-br ${theme.bg} ring-1 ${theme.ring} ${className}`}
+      style={{ width: size, height: size }}
+    >
+      <span
+        className={`absolute inset-0 flex items-center justify-center font-black tracking-tight ${theme.text}`}
+        style={{ fontSize: Math.max(10, Math.round(size * 0.36)) }}
+        aria-hidden={showImg}
+      >
+        {initials}
+      </span>
+      {showImg && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={hero.portraitUrl}
+          alt={hero.name}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="relative w-full h-full object-cover"
+        />
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,268 @@
+@import "tailwindcss";
+
+/* ===== MLBB DESIGN SYSTEM ===== */
+:root {
+  /* Primary Colors - MLBB Gold/Blue Theme */
+  --mlbb-gold: #f4c430;
+  --mlbb-gold-light: #ffd966;
+  --mlbb-gold-dark: #c99a2e;
+  --mlbb-blue: #1a73e8;
+  --mlbb-blue-neon: #00bfff;
+  --mlbb-blue-dark: #0d1b2a;
+  --mlbb-purple: #7b2ff7;
+  --mlbb-red: #ff4444;
+  --mlbb-orange: #ff6b35;
+  --mlbb-green: #00e676;
+
+  /* Background Layers */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a1f35;
+  --bg-card-hover: #242b45;
+  --bg-overlay: rgba(10, 14, 26, 0.85);
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-accent: var(--mlbb-gold);
+  --text-muted: #64748b;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-accent: rgba(244, 196, 48, 0.3);
+  --border-glow: rgba(0, 191, 255, 0.4);
+
+  /* Shadows & Glows */
+  --glow-gold: 0 0 20px rgba(244, 196, 48, 0.3);
+  --glow-blue: 0 0 20px rgba(0, 191, 255, 0.3);
+  --glow-purple: 0 0 20px rgba(123, 47, 247, 0.3);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  /* Transitions - M3E-inspired spring motion */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-smooth: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* Spacing */
+  --nav-height: 72px;
+}
+
+/* ===== BASE RESET ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overscroll-behavior: none;
+  min-height: 100vh;
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: rgba(244, 196, 48, 0.3);
+  color: #fff;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Gradient Text */
+.gradient-text-gold {
+  background: linear-gradient(135deg, var(--mlbb-gold), var(--mlbb-gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-blue {
+  background: linear-gradient(135deg, var(--mlbb-blue-neon), var(--mlbb-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Neon Glow Effects */
+.neon-gold {
+  box-shadow: var(--glow-gold);
+}
+.neon-blue {
+  box-shadow: var(--glow-blue);
+}
+.neon-purple {
+  box-shadow: var(--glow-purple);
+}
+
+/* Glass Card */
+.glass-card {
+  background: rgba(26, 31, 53, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+}
+
+.glass-card-hover {
+  transition: transform var(--duration-normal) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-smooth),
+              border-color var(--duration-normal);
+}
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--border-accent);
+}
+
+/* Press Feedback - M3E inspired */
+.press-effect {
+  transition: transform var(--duration-fast) var(--ease-smooth);
+  user-select: none;
+}
+.press-effect:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* Shimmer / Loading animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Particle float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+/* Pulse glow */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Hero fade in */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in-up {
+  animation: fade-in-up 0.8s var(--ease-spring) forwards;
+}
+
+/* Slide in from sides */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Border glow animation */
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(244, 196, 48, 0.2); }
+  50% { border-color: rgba(244, 196, 48, 0.6); }
+}
+
+/* Role tag colors */
+.role-tank { --role-color: #3b82f6; }
+.role-fighter { --role-color: #ef4444; }
+.role-assassin { --role-color: #a855f7; }
+.role-mage { --role-color: #6366f1; }
+.role-marksman { --role-color: #f59e0b; }
+.role-support { --role-color: #10b981; }
+
+/* Hero Card special effects */
+.hero-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    rgba(244, 196, 48, 0.4), 
+    rgba(0, 191, 255, 0.2), 
+    rgba(123, 47, 247, 0.3));
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--duration-normal);
+}
+.hero-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--border-accent), 
+    transparent);
+}
+
+/* ===== RESPONSIVE HELPERS ===== */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up,
+  .shimmer,
+  .glass-card-hover,
+  .press-effect {
+    animation: none;
+    transition: none;
+  }
+}
+
+
+/* ===== MOBILE HELPERS ===== */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+button { cursor: pointer; touch-action: manipulation; }
+.card {
+  background: rgba(26, 31, 53, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
