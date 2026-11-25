@@ -14,35 +14,29 @@ const sendJson = (res, status, value) => {
 
 export default async function handler(req, res) {
   const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
-  const pathParam = url.searchParams.get('path');
+  const pathParam = url.searchParams.get('path') || '';
   const forwarded = req.headers['x-forwarded-uri'] || req.headers['x-invoke-path'] || req.headers['x-matched-path'] || '';
   
-  let pathname = url.pathname;
-  if (pathParam) {
-    pathname = `/api/${pathParam.replace(/^\/+/, '')}`;
-  } else if (forwarded && forwarded.startsWith('/api')) {
-    pathname = new URL(forwarded, 'https://localhost').pathname;
-  }
-  pathname = pathname.replace(/\/index\.mjs$/, '').replace(/\/+$/, '') || '/api';
+  let target = `${url.pathname} ${pathParam} ${forwarded}`.toLowerCase();
 
   try {
-    if (req.method === 'GET' && (pathname === '/api/dashboard' || pathname === '/api')) {
+    if (req.method === 'GET' && (target.includes('dashboard') || target.trim() === '/api' || target.includes('/api/index'))) {
       const db = await loadDatabase();
       return sendJson(res, 200, { dashboard: await makeDashboard(db), database: db });
     }
 
-    if (req.method === 'GET' && pathname === '/api/compare') {
+    if (req.method === 'GET' && target.includes('compare')) {
       const patchA = url.searchParams.get('patchA') || null;
       const patchB = url.searchParams.get('patchB') || null;
       const db = await loadDatabase();
       return sendJson(res, 200, comparePatches(db, patchA, patchB));
     }
 
-    if (req.method === 'GET' && pathname === '/api/logs') {
+    if (req.method === 'GET' && target.includes('logs')) {
       return sendJson(res, 200, await readJson('sync_logs'));
     }
 
-    if (req.method === 'GET' && pathname === '/api/export') {
+    if (req.method === 'GET' && target.includes('export')) {
       const db = await loadDatabase();
       const exported = Object.fromEntries(DATASET_NAMES.map((name) => [name, db[name]]));
       res.statusCode = 200;
@@ -51,7 +45,7 @@ export default async function handler(req, res) {
       return res.end(JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), database: exported }, null, 2));
     }
 
-    if (req.method === 'POST' && pathname === '/api/analyze') {
+    if (req.method === 'POST' && target.includes('analyze')) {
       let body = req.body;
       if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch { body = {}; }
@@ -61,7 +55,7 @@ export default async function handler(req, res) {
       return sendJson(res, 200, analyzeDraft(db, body));
     }
 
-    if (req.method === 'POST' && pathname === '/api/sync') {
+    if (req.method === 'POST' && target.includes('sync')) {
       return sendJson(res, 200, {
         success: true,
         message: 'Pada deployment cloud, sinkronisasi otomatis berjalan terjadwal via GitHub Actions (official-patch-monitor.yml) tanpa ketergantungan headless browser di serverless.',
@@ -69,7 +63,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (req.method === 'POST' && pathname === '/api/approve') {
+    if (req.method === 'POST' && target.includes('approve')) {
       let body = req.body;
       if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch { body = {}; }
@@ -78,7 +72,7 @@ export default async function handler(req, res) {
       return sendJson(res, 200, await approveChanges(body.ids || []));
     }
 
-    if (req.method === 'POST' && pathname === '/api/import') {
+    if (req.method === 'POST' && target.includes('import')) {
       let body = req.body;
       if (typeof body === 'string') {
         try { body = JSON.parse(body); } catch { body = {}; }
@@ -91,7 +85,13 @@ export default async function handler(req, res) {
       return sendJson(res, 200, { imported: body.name, count: valid.records.length });
     }
 
-    return sendJson(res, 404, { error: 'API tidak ditemukan.' });
+    // Default GET fallback: if a GET request reaches /api, return the dashboard data
+    if (req.method === 'GET') {
+      const db = await loadDatabase();
+      return sendJson(res, 200, { dashboard: await makeDashboard(db), database: db });
+    }
+
+    return sendJson(res, 404, { error: 'API tidak ditemukan.', target });
   } catch (error) {
     return sendJson(res, 400, { error: error.message || String(error) });
   }
