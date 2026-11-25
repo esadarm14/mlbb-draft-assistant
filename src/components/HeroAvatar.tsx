@@ -11,7 +11,7 @@ const roleTheme: Record<string, { ring: string; bg: string; text: string }> = {
   Support: { ring: "ring-emerald-400/50", bg: "from-emerald-900/90 via-slate-800 to-slate-950", text: "text-emerald-300" },
 };
 
-export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; size?: number; className = "" }) {
+export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; size?: number; className?: string }) {
   const [failed, setFailed] = useState(false);
   const theme = roleTheme[hero.roles[0]] ?? {
     ring: "ring-white/20",
