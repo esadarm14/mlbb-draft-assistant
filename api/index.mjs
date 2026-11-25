@@ -14,7 +14,16 @@ const sendJson = (res, status, value) => {
 
 export default async function handler(req, res) {
   const url = new URL(req.url, `https://${req.headers.host || 'localhost'}`);
-  const pathname = url.pathname;
+  const pathParam = url.searchParams.get('path');
+  const forwarded = req.headers['x-forwarded-uri'] || req.headers['x-invoke-path'] || req.headers['x-matched-path'] || '';
+  
+  let pathname = url.pathname;
+  if (pathParam) {
+    pathname = `/api/${pathParam.replace(/^\/+/, '')}`;
+  } else if (forwarded && forwarded.startsWith('/api')) {
+    pathname = new URL(forwarded, 'https://localhost').pathname;
+  }
+  pathname = pathname.replace(/\/index\.mjs$/, '').replace(/\/+$/, '') || '/api';
 
   try {
     if (req.method === 'GET' && (pathname === '/api/dashboard' || pathname === '/api')) {
