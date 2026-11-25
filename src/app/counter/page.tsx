@@ -55,9 +55,7 @@ export default function CounterPage() {
         </div>
       )}
 
-      {enemies.length === 0 ? (
-        <div className="card p-6 text-center text-sm text-slate-400">Belum ada hero lawan. Coba ketik &quot;fa&quot; → Fanny.</div>
-      ) : (
+      {enemies.length > 0 && (
         <>
           <div className="flex items-center justify-between">
             <AiNote />

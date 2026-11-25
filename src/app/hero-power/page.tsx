@@ -17,7 +17,7 @@ const masteryColor: Record<MasteryLevel, string> = {
 };
 
 export default function HeroPowerPage() {
-  const [items, setItems, loaded] = useHeroPower();
+  const [items, setItems] = useHeroPower();
 
   const sorted = useMemo(() => [...items].sort((a, b) => a.priority - b.priority), [items]);
   const byLane = useMemo(() => {
@@ -83,12 +83,6 @@ export default function HeroPowerPage() {
       <div className="card p-4">
         <HeroPicker label="Tambah hero andalan" value={[]} max={99} hideCounter exclude={items.map((i) => i.heroId)} onChange={add} />
       </div>
-
-      {loaded && items.length === 0 && (
-        <div className="card p-6 text-center text-slate-400 text-sm">
-          Belum ada hero. Ketik nama hero di atas, misalnya <b className="text-white">&quot;ma&quot;</b> → pilih Masha / Martis / Marcel.
-        </div>
-      )}
 
       {items.length > 0 && (
         <div className="flex items-center justify-between text-sm">

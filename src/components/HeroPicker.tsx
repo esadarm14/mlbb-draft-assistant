@@ -51,7 +51,7 @@ export function HeroPicker({
   hideCounter = false,
   exclude = [],
   accent = "gold",
-  placeholder = "Ketik nama hero… (misal: ma)",
+  placeholder = "Ketik nama hero",
 }: HeroPickerProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
