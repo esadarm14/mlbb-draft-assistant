@@ -11,21 +11,15 @@ const roleTheme: Record<string, { ring: string; bg: string; text: string }> = {
   Support: { ring: "ring-emerald-400/50", bg: "from-emerald-900/90 via-slate-800 to-slate-950", text: "text-emerald-300" },
 };
 
-function canLoadImage(url?: string) {
-  if (!url) return false;
-  // Legacy svnres icon path returns 403 / ORB block in browsers; use monogram fallback directly.
-  if (url.includes("akmweb.youngjoygame.com/web/svnres/img/mlbb/hero/icon/")) return false;
-  return true;
-}
-
-export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; size?: number; className?: string }) {
+export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; size?: number; className = "" }) {
   const [failed, setFailed] = useState(false);
   const theme = roleTheme[hero.roles[0]] ?? {
     ring: "ring-white/20",
     bg: "from-slate-700 to-slate-900",
     text: "text-[#f4c430]",
   };
-  const showImg = canLoadImage(hero.portraitUrl) && !failed;
+  const src = hero.portraitUrl?.startsWith("/") ? hero.portraitUrl : `/heroes/${hero.id}.png`;
+  const showImg = !failed;
   const initials = hero.name.slice(0, 2).toUpperCase();
 
   return (
@@ -43,10 +37,8 @@ export function HeroAvatar({ hero, size = 40, className = "" }: { hero: Hero; si
       {showImg && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={hero.portraitUrl}
+          src={src}
           alt={hero.name}
-          loading="lazy"
-          referrerPolicy="no-referrer"
           onError={() => setFailed(true)}
           className="relative w-full h-full object-cover"
         />
