@@ -134,13 +134,6 @@ export default function HomePage() {
             ))}
           </ol>
         </section>
-
-        <section className="card p-4">
-          <h2 className="font-bold">📲 Pasang seperti aplikasi</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Di Chrome Android: menu ⋮ → <b className="text-slate-200">Tambahkan ke Layar Utama</b>. Di Safari iPhone: tombol Bagikan → <b className="text-slate-200">Add to Home Screen</b>. Tidak perlu APK.
-          </p>
-        </section>
       </div>
     </div>
   );

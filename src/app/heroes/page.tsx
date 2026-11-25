@@ -76,7 +76,7 @@ export default function HeroesPage() {
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Cari hero…"
+        placeholder="Cari hero… (misal: minotaur)"
         className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-base outline-none focus:border-[#f4c430]/60"
       />
       <div className="flex flex-wrap gap-1.5">
