@@ -56,7 +56,7 @@ export default function HomePage() {
             <span className="bg-gradient-to-r from-[#f4c430] to-[#ffd966] bg-clip-text text-transparent">fase draft.</span>
           </h1>
           <p className="text-sm sm:text-base text-slate-300 mt-3 max-w-md">
-            Rekomendasi Hero Power, counter pick, combo tim, dan analisis early–late game. Langsung di browser HP — tanpa install.
+            Prediksi hero untuk di-ban &amp; di-pick, counter lawan, kombo tim, dan analisis early–late game. Langsung di browser HP — tanpa install.
           </p>
           <div className="flex gap-2.5 mt-6">
             <Link href="/draft" className="flex-1 sm:flex-none text-center px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#f4c430] to-[#c99a2e] text-black font-bold shadow-lg shadow-[#f4c430]/20 active:scale-95 transition">
@@ -121,8 +121,8 @@ export default function HomePage() {
           <ol className="space-y-3">
             {[
               ["Isi Hero Power", "Ketik nama hero andalan, atur level penguasaan."],
-              ["Pilih tier & isi draft", "Jumlah ban menyesuaikan rank: Epic 3, Legend 4, Mythic+ 5."],
-              ["Baca analisis", "Best Hero Power, counter, combo, dan win condition."],
+              ["Pilih tier & cek prediksi ban", "Lihat hero wajib di-ban sesuai rank dan Hero Power kamu."],
+              ["Ikuti saran pick real-time", "Prediksi hero terbaik untuk di-pick, ancaman lawan, combo, dan win condition."],
             ].map(([t, d], i) => (
               <li key={t} className="flex gap-3">
                 <span className="w-7 h-7 shrink-0 rounded-full bg-[#f4c430]/15 text-[#f4c430] text-sm font-bold grid place-items-center">{i + 1}</span>
