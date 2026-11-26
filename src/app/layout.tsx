@@ -2,12 +2,11 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { BottomNav } from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "MLBB Draft Assistant",
   description:
-    "Asisten draft Mobile Legends: Hero Power, counter pick, saran combo, dan analisis early/mid/late game. Langsung di browser HP, tanpa install.",
+    "Asisten draft Mobile Legends 1 halaman: prediksi hero ban & pick, Hero Power, counter pick, combo tim, dan analisis early/mid/late game.",
   applicationName: "MLBB Draft",
   appleWebApp: { capable: true, title: "MLBB Draft", statusBarStyle: "black-translucent" },
 };
@@ -32,11 +31,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="antialiased">
         <Navbar />
-        <main className="min-h-[70vh] pb-24 md:pb-8">{children}</main>
-        <div className="pb-20 md:pb-0">
-          <Footer />
-        </div>
-        <BottomNav />
+        <main className="min-h-[75vh] pb-6">{children}</main>
+        <Footer />
       </body>
     </html>
   );
