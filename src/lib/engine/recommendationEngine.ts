@@ -7,8 +7,11 @@
   PhaseStrength,
   Lane,
   MasteryLevel,
+  RankTier,
+  DraftMode,
 } from '../types';
 import { MLBB_HEROES, getHeroById } from '../database/heroesData';
+import { getHeroMetaStats, type MetaTier } from '../database/metaData';
 
 export interface ScoringWeights {
   counter: number; // default 0.25
@@ -76,15 +79,20 @@ export interface BanRecommendation {
   banScore: number; // 0-100
   reasons: string[];
   category: 'MUST BAN' | 'PRIORITY BAN' | 'SITUATIONAL BAN';
+  metaTier: MetaTier;
+  banRate: number;
+  winRate: number;
+  sourceLabel: string;
 }
 
 export function generateBanRecommendations(
   unavailableIds: string[],
   userHeroPower: HeroPowerItem[],
-  tier: string,
+  tier: RankTier,
   myPicks: string[] = [],
   enemyPicks: string[] = [],
-  limit = 10
+  limit = 10,
+  mode: DraftMode = 'Ranked Draft'
 ): BanRecommendation[] {
   const unavailable = new Set([...unavailableIds, ...myPicks, ...enemyPicks].map((s) => s.toLowerCase()));
   const candidates = MLBB_HEROES.filter((h) => !unavailable.has(h.id.toLowerCase()));
@@ -102,103 +110,104 @@ export function generateBanRecommendations(
   const scored: BanRecommendation[] = candidates.map((hero) => {
     let banScore = 0;
     const reasons: string[] = [];
+    const meta = getHeroMetaStats(hero.id, tier, mode);
 
-    // 1. Base OP potential (offense + control + durability)
+    // 1. Real Meta Ban Rate & Tier Priority (up to 42 pts)
+    const metaTierPts =
+      meta.metaTier === 'S+' ? 18 : meta.metaTier === 'S' ? 12 : meta.metaTier === 'A' ? 6 : 2;
+    const banRatePts = Math.min(24, (meta.banRate / 85) * 24);
+    banScore += metaTierPts + banRatePts;
+    if (meta.banRate >= 25 || meta.metaTier === 'S+' || meta.metaTier === 'S') {
+      reasons.push(`Meta ${meta.metaTier} (Ban Rate ${meta.banRate}% · WR ${meta.winRate}%): ${meta.metaReason}`);
+    }
+
+    // 2. Base OP potential (offense + control + durability, up to 18 pts)
     const opScore = (hero.offense * 0.45 + hero.controlEffect * 0.35 + hero.durability * 0.2) / 10;
-    banScore += opScore * 30;
+    banScore += opScore * 18;
 
-    // 2. Urgent threat against already-picked allies (useful in ban phase 2 / mid-draft)
+    // 3. Urgent threat against already-picked allies (useful in ban phase 2 / mid-draft)
     let teamCounterThreat = 0;
     for (const ally of myHeroes) {
       if (isCounterMatch(hero, ally)) {
-        teamCounterThreat += 24;
-        reasons.push(`Meng-counter ${ally.name} yang sudah kamu pick`);
+        teamCounterThreat += 22;
+        reasons.unshift(`Meng-counter ${ally.name} yang sudah kamu pick`);
       }
     }
-    banScore += Math.min(40, teamCounterThreat);
+    banScore += Math.min(36, teamCounterThreat);
 
-    // 3. Threat against user's Hero Power pool (weighted by mastery level)
+    // 4. Threat against user's Hero Power pool (weighted by mastery level)
     let hpThreat = 0;
     for (const hpItem of userHeroPower) {
       const hpHero = getHeroById(hpItem.heroId);
       if (hpHero && isCounterMatch(hero, hpHero)) {
         const w =
           hpItem.masteryLevel === 'Main Hero'
-            ? 18
+            ? 14
             : hpItem.masteryLevel === 'Highly Mastered'
-              ? 14
+              ? 11
               : hpItem.masteryLevel === 'Comfortable'
-                ? 10
-                : 6;
+                ? 8
+                : 5;
         hpThreat += w;
         reasons.push(`Counter hero andalan kamu (${hpHero.name})`);
       }
     }
-    banScore += Math.min(36, hpThreat);
+    banScore += Math.min(26, hpThreat);
 
-    // 4. Dangerous synergy with already-picked enemies
+    // 5. Dangerous synergy with already-picked enemies
     for (const enemy of enemyHeroes) {
       if (hasSynergy(hero, enemy)) {
         banScore += 12;
-        reasons.push(`Kombo berbahaya dengan ${enemy.name} lawan`);
+        reasons.unshift(`Kombo berbahaya dengan ${enemy.name} lawan`);
         break;
       }
     }
 
-    // 5. Meta strength by rank tier
+    // 6. Meta strength by rank tier
     if (isMythicPlus && hero.roles.includes('Assassin') && hero.difficulty >= 7) {
-      banScore += 12;
-      reasons.push(`Assassin mobilitas tinggi yang dominan di ${tier}`);
-    }
-    if (isMythicPlus && hero.earlyStrength === 'Strong' && hero.midStrength === 'Strong') {
-      banScore += 9;
-      reasons.push('Tekanan tempo early–mid game sangat kuat');
+      banScore += 6;
     }
     if (!isMythicPlus && hero.difficulty <= 4 && hero.offense >= 7) {
-      banScore += 13;
-      reasons.push(`Damage tinggi dan mudah mendominasi di ${tier}`);
-    }
-    if (!isMythicPlus && hero.lateStrength === 'Strong' && hero.offense >= 7) {
-      banScore += 8;
-      reasons.push('Sangat kuat bila game masuk late');
+      banScore += 6;
     }
 
-    // 6. High crowd control & all-phase dominance
+    // 7. High crowd control & flex threat
     if (hero.controlEffect >= 8) {
-      banScore += 8;
-      reasons.push('Crowd control tinggi & mengganggu teamfight');
+      banScore += 4;
     }
-    if (hero.earlyStrength === 'Strong' && hero.midStrength === 'Strong' && hero.lateStrength === 'Strong') {
-      banScore += 12;
-      reasons.push('Kuat dari early hingga late game');
-    }
-
-    // 7. Flex multi-role threat
     if (hero.roles.length >= 2 && hero.lanes.length >= 2) {
-      banScore += 5;
-      reasons.push('Hero fleksibel (multi-role/lane)');
+      banScore += 3;
     }
 
     // 8. Avoid banning your own Hero Power unless it hard-counters an already picked ally
     if (heroPowerMap.has(hero.id.toLowerCase()) && teamCounterThreat === 0) {
-      banScore -= 25;
+      banScore -= 24;
     }
 
     const finalScore = Math.round(Math.max(0, Math.min(100, banScore)));
 
     let category: BanRecommendation['category'] = 'SITUATIONAL BAN';
-    if (finalScore >= 65) category = 'MUST BAN';
-    else if (finalScore >= 46) category = 'PRIORITY BAN';
+    if (finalScore >= 64 || meta.metaTier === 'S+') category = 'MUST BAN';
+    else if (finalScore >= 46 || meta.metaTier === 'S') category = 'PRIORITY BAN';
 
     const uniqueReasons = Array.from(new Set(reasons));
     if (uniqueReasons.length === 0) {
-      uniqueReasons.push('Hero dengan potensi ancaman tinggi terhadap komposisi tim');
+      uniqueReasons.push(meta.metaReason);
     }
 
-    return { hero, banScore: finalScore, reasons: uniqueReasons, category };
+    return {
+      hero,
+      banScore: finalScore,
+      reasons: uniqueReasons,
+      category,
+      metaTier: meta.metaTier,
+      banRate: meta.banRate,
+      winRate: meta.winRate,
+      sourceLabel: meta.sourceLabel,
+    };
   });
 
-  return scored.sort((a, b) => b.banScore - a.banScore).slice(0, limit);
+  return scored.sort((a, b) => b.banScore - a.banScore || b.banRate - a.banRate).slice(0, limit);
 }
 
 // ============================================================
@@ -212,10 +221,14 @@ export interface PickRecommendation {
   missingRole?: string;
   isHeroPower?: boolean;
   masteryLevel?: MasteryLevel;
+  metaTier: MetaTier;
+  winRate: number;
+  banRate: number;
 }
 
 export interface PickRecommendationOptions {
-  tier?: string;
+  tier?: RankTier;
+  mode?: DraftMode;
   mySide?: 'blue' | 'red';
   laneFilter?: Lane | null;
   limit?: number;
@@ -228,7 +241,7 @@ export function generatePickRecommendations(
   userHeroPower: HeroPowerItem[],
   options: PickRecommendationOptions = {}
 ): PickRecommendation[] {
-  const { tier = 'Mythic', mySide = 'blue', laneFilter = null, limit = 10 } = options;
+  const { tier = 'Mythic', mode = 'Ranked Draft', mySide = 'blue', laneFilter = null, limit = 10 } = options;
   const unavailable = new Set([...myPicks, ...enemyPicks, ...allBans].map((s) => s.toLowerCase()));
   const candidates = MLBB_HEROES.filter(
     (h) => !unavailable.has(h.id.toLowerCase()) && (!laneFilter || h.lanes.includes(laneFilter))
@@ -353,7 +366,13 @@ export function generatePickRecommendations(
     }
     pickScore += Math.min(16, synPts);
 
-    // 7. Base hero impact & tier-relevant phase fit
+    // 7. Base hero impact, meta tier & tier-relevant phase fit
+    const meta = getHeroMetaStats(hero.id, tier, mode);
+    const metaBonus = meta.metaTier === 'S+' ? 8 : meta.metaTier === 'S' ? 5 : meta.metaTier === 'A' ? 2 : 0;
+    pickScore += metaBonus;
+    if (meta.metaTier === 'S+' || meta.metaTier === 'S') {
+      reasons.push(`Meta ${meta.metaTier} (WR ${meta.winRate}%) di ${mode === 'Tournament Draft' ? 'Turnamen' : tier}`);
+    }
     const statQuality = ((hero.offense + hero.controlEffect + hero.durability) / 30) * 6;
     pickScore += statQuality;
     if (isMythicPlus && hero.earlyStrength === 'Strong') pickScore += 2;
@@ -386,6 +405,9 @@ export function generatePickRecommendations(
       missingRole,
       isHeroPower: isHP,
       masteryLevel: hpItem?.masteryLevel,
+      metaTier: meta.metaTier,
+      winRate: meta.winRate,
+      banRate: meta.banRate,
     };
   });
 
@@ -439,6 +461,107 @@ export function predictEnemyThreats(
     .slice(0, 3);
 
   return { counterThreats, synergyThreats, enemyMissingLanes };
+}
+
+// ============================================================
+// LIVE STEP-BY-STEP BRIEFING
+// ============================================================
+export interface DraftLogEntry {
+  stepIndex: number;
+  action: 'ban' | 'pick';
+  actor: 'me' | 'enemy';
+  heroId: string;
+}
+
+export interface StepBriefing {
+  headline: string;
+  impacts: string[];
+  opportunity: string;
+  tone: 'info' | 'warning' | 'opportunity';
+}
+
+export function buildStepBriefing(
+  lastEntry: DraftLogEntry | undefined,
+  userHeroPower: HeroPowerItem[],
+  allBans: string[],
+  tier: RankTier,
+  mode: DraftMode
+): StepBriefing | null {
+  if (!lastEntry) return null;
+  const hero = getHeroById(lastEntry.heroId);
+  if (!hero) return null;
+
+  const meta = getHeroMetaStats(hero.id, tier, mode);
+  const impacts: string[] = [];
+  let tone: StepBriefing['tone'] = 'info';
+
+  const isMyHeroPower = userHeroPower.some((hp) => hp.heroId.toLowerCase() === hero.id.toLowerCase());
+  const unavailable = new Set(allBans.map((id) => id.toLowerCase()));
+
+  if (lastEntry.actor === 'enemy' && lastEntry.action === 'ban') {
+    if (isMyHeroPower) {
+      impacts.push(`Hero Power kamu (${hero.name}) terkena ban lawan — siapkan backup di lane ${hero.lanes.map((l) => LANE_LABELS[l]).join('/')}.`);
+      tone = 'warning';
+    } else {
+      impacts.push(`${hero.name} (Meta ${meta.metaTier} · Ban Rate ${meta.banRate}%) dikeluarkan dari draft.`);
+    }
+
+    // Heroes that this banned hero used to counter are now safer!
+    const freedTargets = hero.keyCounters
+      .filter((id) => !unavailable.has(id.toLowerCase()))
+      .map((id) => getHeroById(id)?.name)
+      .filter((n): n is string => !!n)
+      .slice(0, 3);
+
+    const opportunity =
+      freedTargets.length > 0
+        ? `Peluang terbuka: tanpa ${hero.name}, hero seperti ${freedTargets.join(', ')} lebih leluasa dimainkan. Cek opsi kombo di bawah!`
+        : `Lawan mengurangi opsi ${hero.roles.join('/')} di draft — manfaatkan celah ini untuk mengatur kombo tim.`;
+
+    if (freedTargets.length > 0 && tone !== 'warning') tone = 'opportunity';
+
+    return {
+      headline: `Lawan baru saja mem-ban ${hero.name}`,
+      impacts,
+      opportunity,
+      tone,
+    };
+  }
+
+  if (lastEntry.actor === 'enemy' && lastEntry.action === 'pick') {
+    const counters = MLBB_HEROES.filter(
+      (c) => !unavailable.has(c.id.toLowerCase()) && isCounterMatch(c, hero)
+    )
+      .slice(0, 3)
+      .map((c) => c.name);
+
+    impacts.push(`Lawan mengamankan ${hero.name} (${hero.roles.join('/')} · ${hero.lanes[0] ?? 'Flex'}).`);
+    if (hero.controlEffect >= 7) {
+      impacts.push('Waspada crowd control tinggi lawan saat teamfight.');
+    }
+
+    const opportunity =
+      counters.length > 0
+        ? `Rekomendasi counter langsung: ${counters.join(', ')}. Kamu juga bisa memilih kombo di bawah untuk melawan gaya main ${hero.name}.`
+        : `Sesuaikan pick dan kombo tim untuk menekan fase kuat ${hero.name}.`;
+
+    return {
+      headline: `Lawan baru saja pick ${hero.name}`,
+      impacts,
+      opportunity,
+      tone: 'warning',
+    };
+  }
+
+  return {
+    headline: `Kamu ${lastEntry.action === 'ban' ? 'mem-ban' : 'memilih'} ${hero.name}`,
+    impacts: [`Meta ${meta.metaTier} · WR ${meta.winRate}% · ${hero.roles.join('/')}.`],
+    opportunity:
+      lastEntry.action === 'ban'
+        ? 'Lanjutkan memantau ban lawan atau bersiap masuk fase pick.'
+        : 'Komposisi tim dan rekomendasi kombo telah diperbarui otomatis.',
+    tone: 'info',
+  };
 }
 
 // ============================================================

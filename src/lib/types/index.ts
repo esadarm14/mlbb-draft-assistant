@@ -139,6 +139,7 @@ export interface ComboCardData {
   executionGuide: string;
   effectiveGameTime: string;
   effectivenessScore: number;
+  contextBadge?: string;
 }
 
 export interface TeamPhaseEvaluation {

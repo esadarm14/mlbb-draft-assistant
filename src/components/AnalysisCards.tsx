@@ -119,6 +119,11 @@ export function ComboCard({ combo, index }: { combo: ComboCardData; index: numbe
             <div className="min-w-0">
               <div className="text-[11px] text-[#f4c430] font-semibold">COMBO #{index + 1} · {combo.type}</div>
               <div className="font-bold truncate">{combo.name}</div>
+              {combo.contextBadge && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                  {combo.contextBadge}
+                </span>
+              )}
             </div>
             <ScoreRing value={combo.effectivenessScore} color="#a78bfa" />
           </div>

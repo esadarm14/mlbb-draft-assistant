@@ -6,20 +6,27 @@ import { PhaseRow } from "@/components/PhaseBadge";
 import { ComboCard, TeamPhaseCard, MasteryTag, AiNote } from "@/components/AnalysisCards";
 import { CounterDrawer, HeroPowerDrawer, HeroesDrawer } from "@/components/QuickDrawers";
 import { useHeroPower, useTier } from "@/lib/storage";
-import { RANK_TIERS, getInitialDraftConfig, TIER_META_NOTES } from "@/lib/database/draftRules";
+import {
+  RANK_TIERS,
+  TIER_META_NOTES,
+  buildDraftSequence,
+  getInitialDraftConfig,
+} from "@/lib/database/draftRules";
+import { getTopMetaBans, type MetaTier } from "@/lib/database/metaData";
 import {
   LANE_LABELS,
+  buildStepBriefing,
+  evaluateTeamComposition,
   generateBanRecommendations,
   generatePickRecommendations,
   getMissingLanes,
   predictEnemyThreats,
-  evaluateTeamComposition,
+  type DraftLogEntry,
 } from "@/lib/engine/recommendationEngine";
 import { buildComboRecommendations } from "@/lib/database/combosData";
 import { MLBB_HEROES, getHeroById } from "@/lib/database/heroesData";
-import type { Hero, Lane, RankTier } from "@/lib/types";
+import type { DraftMode, Hero, Lane, RankTier } from "@/lib/types";
 
-type Phase = "ban" | "pick" | "result";
 type Side = "blue" | "red";
 type Drawer = "hero-power" | "counter" | "heroes" | null;
 
@@ -34,6 +41,14 @@ const tierIcon: Record<string, string> = {
   "Mythical Immortal": "👑",
 };
 
+const metaTierBadgeColor: Record<MetaTier, string> = {
+  "S+": "bg-rose-500/25 text-rose-200 border border-rose-500/40",
+  S: "bg-amber-500/20 text-amber-200 border border-amber-500/35",
+  A: "bg-sky-500/20 text-sky-200 border border-sky-500/30",
+  B: "bg-slate-500/20 text-slate-300",
+  C: "bg-slate-700/30 text-slate-400",
+};
+
 function Badge({ text, color }: { text: string; color: string }) {
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${color}`}>{text}</span>;
 }
@@ -42,6 +57,8 @@ interface RecRowProps {
   hero: Hero;
   badgeText: string;
   badgeColor: string;
+  metaTier?: MetaTier;
+  statText?: string;
   extraBadges?: React.ReactNode;
   score: number;
   reasons: string[];
@@ -55,6 +72,8 @@ function RecRow({
   hero,
   badgeText,
   badgeColor,
+  metaTier,
+  statText,
   extraBadges,
   score,
   reasons,
@@ -78,11 +97,13 @@ function RecRow({
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-bold truncate">{hero.name}</span>
               <Badge text={badgeText} color={badgeColor} />
+              {metaTier && <Badge text={`Tier ${metaTier}`} color={metaTierBadgeColor[metaTier]} />}
               {extraBadges}
             </div>
             <p className="text-[11px] text-slate-300 mt-0.5 line-clamp-2 leading-snug">{reasons[0]}</p>
             <div className="text-[10px] text-slate-500 mt-0.5">
-              Skor {score} · {hero.roles.join("/")} · {expanded ? "Tutup ▲" : "Detail ▼"}
+              Skor {score}
+              {statText ? ` · ${statText}` : ""} · {hero.roles.join("/")} · {expanded ? "Tutup ▲" : "Detail ▼"}
             </div>
           </div>
         </button>
@@ -120,37 +141,91 @@ function RecRow({
 export function DraftWorkspace() {
   const [tier, setTier] = useTier();
   const [heroPower] = useHeroPower();
+  const [mode, setMode] = useState<DraftMode>("Ranked Draft");
   const [mySide, setMySide] = useState<Side>("blue");
-  const [phase, setPhase] = useState<Phase>("ban");
   const [drawer, setDrawer] = useState<Drawer>(null);
 
-  // Draft state
-  const [myBans, setMyBans] = useState<string[]>([]);
-  const [enemyBans, setEnemyBans] = useState<string[]>([]);
-  const [myPicks, setMyPicks] = useState<string[]>([]);
-  const [enemyPicks, setEnemyPicks] = useState<string[]>([]);
+  // Sequential live draft log
+  const [log, setLog] = useState<DraftLogEntry[]>([]);
+  const [viewAnalysis, setViewAnalysis] = useState(false);
 
   // List UI state
   const [showMoreBans, setShowMoreBans] = useState(false);
   const [showMorePicks, setShowMorePicks] = useState(false);
   const [pickLaneFilter, setPickLaneFilter] = useState<Lane | null>(null);
 
-  const config = getInitialDraftConfig(tier);
+  const config = useMemo(() => getInitialDraftConfig(tier, mode), [tier, mode]);
   const bansPerTeam = config.bansPerTeam;
 
-  const selectTier = (nextTier: RankTier) => {
-    setTier(nextTier);
-    const nextBans = getInitialDraftConfig(nextTier).bansPerTeam;
-    setMyBans((b) => b.slice(0, nextBans));
-    setEnemyBans((b) => b.slice(0, nextBans));
-  };
+  const draftSequence = useMemo(() => buildDraftSequence(tier, mode, mySide), [tier, mode, mySide]);
+
+  // Derive teams from sequential log
+  const { myBans, enemyBans, myPicks, enemyPicks } = useMemo(() => {
+    const mb: string[] = [];
+    const eb: string[] = [];
+    const mp: string[] = [];
+    const ep: string[] = [];
+    for (const entry of log) {
+      if (entry.action === "ban" && entry.actor === "me") mb.push(entry.heroId);
+      else if (entry.action === "ban" && entry.actor === "enemy") eb.push(entry.heroId);
+      else if (entry.action === "pick" && entry.actor === "me") mp.push(entry.heroId);
+      else ep.push(entry.heroId);
+    }
+    return { myBans: mb, enemyBans: eb, myPicks: mp, enemyPicks: ep };
+  }, [log]);
 
   const allBans = useMemo(() => [...myBans, ...enemyBans], [myBans, enemyBans]);
   const allUsed = useMemo(() => [...allBans, ...myPicks, ...enemyPicks], [allBans, myPicks, enemyPicks]);
-  const without = (own: string[]) => allUsed.filter((id) => !own.includes(id));
 
-  const bansDone = myBans.length >= bansPerTeam && enemyBans.length >= bansPerTeam;
-  const picksDone = myPicks.length >= 5 && enemyPicks.length >= 5;
+  const currentStep = log.length < draftSequence.length ? draftSequence[log.length] : null;
+  const draftFinished = log.length >= draftSequence.length;
+  const lastEntry = log.length > 0 ? log[log.length - 1] : undefined;
+
+  const selectTier = (nextTier: RankTier) => {
+    setTier(nextTier);
+    setLog([]);
+    setViewAnalysis(false);
+  };
+
+  const selectMode = (nextMode: DraftMode) => {
+    setMode(nextMode);
+    setLog([]);
+    setViewAnalysis(false);
+  };
+
+  const selectSide = (nextSide: Side) => {
+    setMySide(nextSide);
+    setLog([]);
+    setViewAnalysis(false);
+  };
+
+  const recordStep = (heroId: string) => {
+    if (!currentStep || allUsed.includes(heroId)) return;
+    setLog((prev) => [
+      ...prev,
+      {
+        stepIndex: currentStep.index,
+        action: currentStep.action,
+        actor: currentStep.actor,
+        heroId,
+      },
+    ]);
+    setShowMoreBans(false);
+    setShowMorePicks(false);
+  };
+
+  const undoStep = () => {
+    setLog((prev) => prev.slice(0, -1));
+    setViewAnalysis(false);
+  };
+
+  const reset = () => {
+    setLog([]);
+    setPickLaneFilter(null);
+    setShowMoreBans(false);
+    setShowMorePicks(false);
+    setViewAnalysis(false);
+  };
 
   const myHeroes = useMemo(
     () => myPicks.map((id) => getHeroById(id)).filter((h): h is Hero => !!h),
@@ -160,55 +235,36 @@ export function DraftWorkspace() {
 
   // Real-time Ban & Pick Predictions
   const banRecs = useMemo(
-    () => generateBanRecommendations(allUsed, heroPower, tier, myPicks, enemyPicks, 10),
-    [allUsed, heroPower, tier, myPicks, enemyPicks]
+    () => generateBanRecommendations(allUsed, heroPower, tier, myPicks, enemyPicks, 10, mode),
+    [allUsed, heroPower, tier, myPicks, enemyPicks, mode]
   );
 
   const pickRecs = useMemo(
     () =>
       generatePickRecommendations(myPicks, enemyPicks, allBans, heroPower, {
         tier,
+        mode,
         mySide,
         laneFilter: pickLaneFilter,
         limit: 10,
       }),
-    [myPicks, enemyPicks, allBans, heroPower, tier, mySide, pickLaneFilter]
+    [myPicks, enemyPicks, allBans, heroPower, tier, mode, mySide, pickLaneFilter]
   );
 
+  const topMetaBans = useMemo(() => getTopMetaBans(tier, mode, allUsed, 6), [tier, mode, allUsed]);
   const enemyThreats = useMemo(
     () => predictEnemyThreats(myPicks, enemyPicks, allBans),
     [myPicks, enemyPicks, allBans]
   );
 
+  const stepBriefing = useMemo(
+    () => buildStepBriefing(lastEntry, heroPower, allBans, tier, mode),
+    [lastEntry, heroPower, allBans, tier, mode]
+  );
+
   const myEval = useMemo(() => (myPicks.length > 0 ? evaluateTeamComposition(myPicks) : null), [myPicks]);
   const enemyEval = useMemo(() => (enemyPicks.length > 0 ? evaluateTeamComposition(enemyPicks) : null), [enemyPicks]);
-  const combos = useMemo(() => buildComboRecommendations(myPicks, enemyPicks), [myPicks, enemyPicks]);
-
-  const reset = () => {
-    setMyBans([]);
-    setEnemyBans([]);
-    setMyPicks([]);
-    setEnemyPicks([]);
-    setPickLaneFilter(null);
-    setShowMoreBans(false);
-    setShowMorePicks(false);
-    setPhase("ban");
-  };
-
-  const quickBan = (id: string) => {
-    if (allUsed.includes(id)) return;
-    if (myBans.length < bansPerTeam) {
-      setMyBans([...myBans, id]);
-    } else if (enemyBans.length < bansPerTeam) {
-      setEnemyBans([...enemyBans, id]);
-    }
-  };
-
-  const quickPick = (id: string) => {
-    if (myPicks.length < 5 && !allUsed.includes(id)) {
-      setMyPicks([...myPicks, id]);
-    }
-  };
+  const combos = useMemo(() => buildComboRecommendations(myPicks, enemyPicks, allBans), [myPicks, enemyPicks, allBans]);
 
   const shownBanRecs = banRecs.slice(0, showMoreBans ? 10 : 5);
   const shownPickRecs = pickRecs.slice(0, showMorePicks ? 10 : 5);
@@ -226,7 +282,7 @@ export function DraftWorkspace() {
       onClick={() => setDrawer("hero-power")}
       className="w-full text-left rounded-xl border border-[#f4c430]/30 bg-[#f4c430]/10 p-3 text-xs text-[#f4c430] active:scale-[0.99] transition"
     >
-      💡 Isi Hero Power kamu agar prediksi ban &amp; pick lebih akurat →
+      💡 Isi Hero Power kamu agar prediksi ban, pick &amp; counter lebih personal →
     </button>
   );
 
@@ -236,22 +292,33 @@ export function DraftWorkspace() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            DRAFT ASSISTANT
+            LIVE DRAFT GUIDE
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {tier} · {bansPerTeam} ban/tim · Prediksi ban &amp; pick real-time
+            {mode === "Tournament Draft" ? "Mode Turnamen (MPL)" : tier} · {bansPerTeam} ban/tim · Panduan langkah demi langkah
           </p>
         </div>
-        <button
-          type="button"
-          onClick={reset}
-          className="px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 active:scale-95"
-        >
-          ↺ Reset
-        </button>
+        <div className="flex gap-1.5">
+          {log.length > 0 && (
+            <button
+              type="button"
+              onClick={undoStep}
+              className="px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-200 hover:bg-white/10 active:scale-95"
+            >
+              ↩ Undo
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={reset}
+            className="px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 active:scale-95"
+          >
+            ↺ Reset
+          </button>
+        </div>
       </div>
 
-      {/* Single-page compact tool strip (replaces 5-page menu) */}
+      {/* Single-page compact tool strip */}
       <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
@@ -283,30 +350,51 @@ export function DraftWorkspace() {
         </button>
       </div>
 
-      {/* Tier & Side Selection */}
+      {/* Mode, Tier & Side Selection */}
       <div className="space-y-2">
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          {RANK_TIERS.map((t) => (
+        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.04]">
+          {(["Ranked Draft", "Tournament Draft"] as DraftMode[]).map((m) => (
             <button
-              key={t}
+              key={m}
               type="button"
-              onClick={() => selectTier(t)}
-              className={`px-3 py-2 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
-                t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+              onClick={() => selectMode(m)}
+              className={`py-2 rounded-xl text-xs font-semibold transition ${
+                mode === m ? "bg-[#f4c430] text-black" : "text-slate-400 hover:text-white"
               }`}
             >
-              {tierIcon[t]} {t}
+              {m === "Ranked Draft" ? "🏆 Meta Ranked" : "🏟️ Meta Turnamen (MPL)"}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-slate-500 leading-snug">{TIER_META_NOTES[tier]}</p>
+
+        {mode === "Ranked Draft" && (
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            {RANK_TIERS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => selectTier(t)}
+                className={`px-3 py-2 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
+                  t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+                }`}
+              >
+                {tierIcon[t]} {t}
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="text-[11px] text-slate-500 leading-snug">
+          {mode === "Tournament Draft"
+            ? "Meta Turnamen (5 ban/tim): prioritas pada hero flex, kontrol zona (Zhuxin), dan snowball agresif (Freya, Fanny, Chip)."
+            : TIER_META_NOTES[tier]}
+        </p>
 
         <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.04]">
           {(["blue", "red"] as Side[]).map((s) => (
             <button
               key={s}
               type="button"
-              onClick={() => setMySide(s)}
+              onClick={() => selectSide(s)}
               className={`py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
                 mySide === s
                   ? s === "blue"
@@ -321,187 +409,273 @@ export function DraftWorkspace() {
         </div>
       </div>
 
-      {/* Sticky Clickable Phase Navigation */}
-      <div className="sticky top-14 z-30 py-2 bg-[#0a0e1a]/95 backdrop-blur">
-        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-white/[0.05]">
-          {(
-            [
-              ["ban", `1. Ban (${allBans.length}/${bansPerTeam * 2})`, bansDone],
-              ["pick", `2. Pick (${myPicks.length + enemyPicks.length}/10)`, picksDone],
-              ["result", "3. Hasil", picksDone],
-            ] as [Phase, string, boolean][]
-          ).map(([k, label, done]) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setPhase(k)}
-              className={`py-2.5 px-2 rounded-xl text-xs font-bold transition ${
-                phase === k
-                  ? "bg-[#f4c430] text-black"
-                  : done
-                    ? "text-emerald-300 bg-emerald-500/10"
-                    : "text-slate-400 hover:text-white"
-              }`}
-            >
-              {done && phase !== k ? "✓ " : ""}
-              {label}
-            </button>
-          ))}
+      {/* Compact Live Draft Board */}
+      <div className="card p-3 space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-slate-200">
+            {draftFinished
+              ? "✅ Draft Selesai"
+              : `📍 Langkah ${log.length + 1}/${draftSequence.length} · ${currentStep?.phaseLabel}`}
+          </span>
+          <button
+            type="button"
+            onClick={() => setViewAnalysis((v) => !v)}
+            className="text-[11px] font-semibold text-[#f4c430] hover:underline"
+          >
+            {viewAnalysis ? "← Kembali ke Panduan Live" : "📊 Lihat Ringkasan"}
+          </button>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-[#f4c430] to-emerald-400 transition-all duration-300"
+            style={{ width: `${Math.round((log.length / draftSequence.length) * 100)}%` }}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div className="rounded-xl bg-sky-500/5 border border-sky-500/15 p-2 space-y-1.5">
+            <div className="font-bold text-sky-300">Tim Kamu ({mySide === "blue" ? "Biru" : "Merah"})</div>
+            <div className="text-[10px] text-slate-400">
+              Ban ({myBans.length}/{bansPerTeam}):{" "}
+              {myBans.length === 0
+                ? "—"
+                : myBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {myPicks.length === 0 ? (
+                <span className="text-[10px] text-slate-500">Pick: belum ada</span>
+              ) : (
+                myPicks.map((id) => {
+                  const h = getHeroById(id);
+                  return h ? (
+                    <div key={id} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/15">
+                      <HeroAvatar hero={h} size={18} />
+                      <span className="text-[10px] font-medium">{h.name}</span>
+                    </div>
+                  ) : null;
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-rose-500/5 border border-rose-500/15 p-2 space-y-1.5">
+            <div className="font-bold text-rose-300">Tim Lawan ({mySide === "blue" ? "Merah" : "Biru"})</div>
+            <div className="text-[10px] text-slate-400">
+              Ban ({enemyBans.length}/{bansPerTeam}):{" "}
+              {enemyBans.length === 0
+                ? "—"
+                : enemyBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {enemyPicks.length === 0 ? (
+                <span className="text-[10px] text-slate-500">Pick: belum ada</span>
+              ) : (
+                enemyPicks.map((id) => {
+                  const h = getHeroById(id);
+                  return h ? (
+                    <div key={id} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500/15">
+                      <HeroAvatar hero={h} size={18} />
+                      <span className="text-[10px] font-medium">{h.name}</span>
+                    </div>
+                  ) : null;
+                })
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ===== BAN PHASE ===== */}
-      {phase === "ban" && (
-        <div className="space-y-4">
-          <div className="card p-4 border-[#f4c430]/20 space-y-3">
-            <div>
-              <h2 className="text-sm font-bold text-[#f4c430]">🚫 Prediksi Hero untuk Di-Ban</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Prioritas ban untuk meta {tier} dan counter terhadap Hero Power {myPicks.length > 0 ? "& tim kamu" : "kamu"}.
-              </p>
-            </div>
-
-            {heroPowerPrompt}
-
-            <div className="space-y-2">
-              {shownBanRecs.map((rec) => {
-                const badgeColor =
-                  rec.category === "MUST BAN"
-                    ? "bg-red-500/20 text-red-300"
-                    : rec.category === "PRIORITY BAN"
-                      ? "bg-orange-500/20 text-orange-300"
-                      : "bg-slate-500/20 text-slate-300";
-                const myFull = myBans.length >= bansPerTeam;
-                const actionLabel = !myFull ? "Ban" : enemyBans.length < bansPerTeam ? "+ Lawan" : "Penuh";
-                return (
-                  <RecRow
-                    key={rec.hero.id}
-                    hero={rec.hero}
-                    badgeText={rec.category}
-                    badgeColor={badgeColor}
-                    score={rec.banScore}
-                    reasons={rec.reasons}
-                    actionLabel={actionLabel}
-                    actionClassName="bg-rose-500/20 text-rose-200 hover:bg-rose-500/30"
-                    actionDisabled={bansDone || allUsed.includes(rec.hero.id)}
-                    onAction={() => quickBan(rec.hero.id)}
-                  />
-                );
-              })}
-            </div>
-
-            {banRecs.length > 5 && (
-              <button
-                type="button"
-                onClick={() => setShowMoreBans((v) => !v)}
-                className="w-full py-2 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 transition"
-              >
-                {showMoreBans ? "Tampilkan 5 teratas ▲" : "Lihat 5 kandidat ban lainnya ▼"}
-              </button>
-            )}
-          </div>
-
-          <div className="card p-4 border-sky-500/20">
-            <HeroPicker
-              label={`🛡️ Ban tim kamu (${myBans.length}/${bansPerTeam})`}
-              value={myBans}
-              onChange={setMyBans}
-              max={bansPerTeam}
-              exclude={without(myBans)}
-              accent="blue"
-            />
-          </div>
-
-          <div className="card p-4 border-rose-500/20">
-            <HeroPicker
-              label={`🔴 Ban tim lawan (${enemyBans.length}/${bansPerTeam})`}
-              value={enemyBans}
-              onChange={setEnemyBans}
-              max={bansPerTeam}
-              exclude={without(enemyBans)}
-              accent="red"
-            />
-          </div>
-
-          {bansDone && (
-            <div className="text-center text-xs text-emerald-300 font-semibold">
-              ✓ Fase ban selesai! Lanjut ke fase pick untuk rekomendasi hero.
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setPhase("pick")}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#f4c430] to-[#c99a2e] text-black font-bold active:scale-[0.98] transition"
-          >
-            Lanjut ke Fase Pick →
-          </button>
+      {/* Live Briefing after last action */}
+      {stepBriefing && !viewAnalysis && (
+        <div
+          className={`card p-3.5 space-y-1.5 ${
+            stepBriefing.tone === "warning"
+              ? "border-rose-500/30 bg-rose-500/5"
+              : stepBriefing.tone === "opportunity"
+                ? "border-emerald-500/30 bg-emerald-500/5"
+                : "border-sky-500/25 bg-sky-500/5"
+          }`}
+        >
+          <div className="text-xs font-bold text-white">⚡ {stepBriefing.headline}</div>
+          {stepBriefing.impacts.map((imp, idx) => (
+            <p key={idx} className="text-[11px] text-slate-300 leading-snug">
+              • {imp}
+            </p>
+          ))}
+          <p className="text-[11px] text-[#f4c430] font-medium leading-snug">→ {stepBriefing.opportunity}</p>
         </div>
       )}
 
-      {/* ===== PICK PHASE ===== */}
-      {phase === "pick" && (
+      {/* ===== LIVE STEP-BY-STEP GUIDANCE ===== */}
+      {!draftFinished && !viewAnalysis && currentStep && (
         <div className="space-y-4">
-          <div className="card p-3.5 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-200">📋 Kebutuhan Role Tim Kamu</span>
-              <span className="text-slate-400">{myPicks.length}/5 hero</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {ALL_LANES.map((lane) => {
-                const isOpen = missingLanes.includes(lane);
-                const isFiltered = pickLaneFilter === lane;
-                return (
-                  <button
-                    key={lane}
-                    type="button"
-                    onClick={() => setPickLaneFilter((cur) => (cur === lane ? null : lane))}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
-                      isFiltered
-                        ? "bg-[#f4c430] text-black border-[#f4c430]"
-                        : isOpen
-                          ? "border-[#f4c430]/40 bg-[#f4c430]/10 text-[#f4c430]"
-                          : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                    }`}
-                  >
-                    {isOpen ? "?" : "✓"} {LANE_LABELS[lane]}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-slate-500">
-              Ketuk role di atas untuk memfilter rekomendasi pick khusus lane tersebut.
-            </p>
-          </div>
+          {heroPowerPrompt}
 
-          {allBans.length > 0 && (
-            <div className="card p-3">
-              <p className="text-xs text-slate-400 mb-2">Hero yang di-ban ({allBans.length}):</p>
-              <div className="flex flex-wrap gap-1.5">
-                {allBans.map((id) => {
-                  const h = getHeroById(id);
-                  return h ? (
-                    <div key={id} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 opacity-60">
-                      <HeroAvatar hero={h} size={20} />
-                      <span className="text-[11px] text-slate-400 line-through">{h.name}</span>
+          {/* ENEMY TURN (BAN OR PICK) */}
+          {currentStep.actor === "enemy" && (
+            <div className="card p-4 border-rose-500/30 space-y-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge text="GILIRAN LAWAN" color="bg-rose-500/25 text-rose-200" />
+                  <h2 className="text-sm font-bold text-rose-200">{currentStep.label}</h2>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  {currentStep.action === "ban"
+                    ? "Pilih hero yang di-ban lawan — sistem akan langsung merekomendasikan ban berikutnya & opsi kombo yang terbuka."
+                    : "Pilih hero yang di-pick lawan — sistem akan langsung menyiapkan counter pick & opsi kombo terbaik."}
+                </p>
+              </div>
+
+              <HeroPicker
+                label={currentStep.action === "ban" ? "Masukkan hero ban lawan:" : "Masukkan hero pick lawan:"}
+                value={[]}
+                onChange={(ids) => {
+                  if (ids[0]) recordStep(ids[0]);
+                }}
+                max={1}
+                hideCounter
+                exclude={allUsed}
+                accent="red"
+                placeholder={
+                  currentStep.action === "ban" ? "Ketik nama hero yang di-ban lawan..." : "Ketik nama hero yang di-pick lawan..."
+                }
+              />
+
+              {/* Quick tap chips for common meta bans / predicted enemy picks */}
+              {currentStep.action === "ban" && topMetaBans.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-slate-400">Tap cepat hero yang sering di-ban di meta ini:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {topMetaBans.map((m) => {
+                      const h = getHeroById(m.heroId);
+                      if (!h) return null;
+                      return (
+                        <button
+                          key={h.id}
+                          type="button"
+                          onClick={() => recordStep(h.id)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 text-xs active:scale-95 transition"
+                        >
+                          <HeroAvatar hero={h} size={20} />
+                          <span className="font-medium">{h.name}</span>
+                          <span className="text-[10px] text-rose-300">{m.banRate}%</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {currentStep.action === "pick" &&
+                (enemyThreats.counterThreats.length > 0 || topMetaBans.length > 0) && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] text-slate-400">Tap cepat jika lawan mengambil hero meta/ancaman:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(enemyThreats.counterThreats.length > 0
+                        ? enemyThreats.counterThreats.map((t) => t.hero)
+                        : topMetaBans.map((m) => getHeroById(m.heroId)).filter((h): h is Hero => !!h)
+                      )
+                        .slice(0, 6)
+                        .map((h) => (
+                          <button
+                            key={h.id}
+                            type="button"
+                            onClick={() => recordStep(h.id)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 text-xs active:scale-95 transition"
+                          >
+                            <HeroAvatar hero={h} size={20} />
+                            <span className="font-medium">{h.name}</span>
+                          </button>
+                        ))}
                     </div>
-                  ) : null;
+                  </div>
+                )}
+            </div>
+          )}
+
+          {/* MY TURN: BAN */}
+          {currentStep.actor === "me" && currentStep.action === "ban" && (
+            <div className="card p-4 border-[#f4c430]/30 space-y-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge text="GILIRAN KAMU" color="bg-[#f4c430] text-black" />
+                  <h2 className="text-sm font-bold text-[#f4c430]">🚫 {currentStep.label} — Rekomendasi Ban</h2>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Berdasarkan data ban rate {mode === "Tournament Draft" ? "Turnamen MPL" : `Meta ${tier}`} &amp; ancaman terhadap Hero Power kamu.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {shownBanRecs.map((rec) => {
+                  const badgeColor =
+                    rec.category === "MUST BAN"
+                      ? "bg-red-500/20 text-red-300"
+                      : rec.category === "PRIORITY BAN"
+                        ? "bg-orange-500/20 text-orange-300"
+                        : "bg-slate-500/20 text-slate-300";
+                  return (
+                    <RecRow
+                      key={rec.hero.id}
+                      hero={rec.hero}
+                      badgeText={rec.category}
+                      badgeColor={badgeColor}
+                      metaTier={rec.metaTier}
+                      statText={`Ban ${rec.banRate}% · WR ${rec.winRate}%`}
+                      score={rec.banScore}
+                      reasons={rec.reasons}
+                      actionLabel="Ban"
+                      actionClassName="bg-rose-500/20 text-rose-200 hover:bg-rose-500/30"
+                      onAction={() => recordStep(rec.hero.id)}
+                    />
+                  );
                 })}
+              </div>
+
+              {banRecs.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setShowMoreBans((v) => !v)}
+                  className="w-full py-2 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 transition"
+                >
+                  {showMoreBans ? "Tampilkan 5 teratas ▲" : "Lihat 5 kandidat ban lainnya ▼"}
+                </button>
+              )}
+
+              <div className="pt-2 border-t border-white/5">
+                <HeroPicker
+                  label="Atau pilih hero lain yang kamu/rekan ban:"
+                  value={[]}
+                  onChange={(ids) => {
+                    if (ids[0]) recordStep(ids[0]);
+                  }}
+                  max={1}
+                  hideCounter
+                  exclude={allUsed}
+                  accent="blue"
+                  placeholder="Cari hero ban tim kamu..."
+                />
               </div>
             </div>
           )}
 
-          {myPicks.length < 5 && (
-            <div className="card p-4 border-[#f4c430]/20 space-y-3">
+          {/* MY TURN: PICK */}
+          {currentStep.actor === "me" && currentStep.action === "pick" && (
+            <div className="card p-4 border-[#f4c430]/30 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h2 className="text-sm font-bold text-[#f4c430]">⚡ Prediksi Hero untuk Di-Pick</h2>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex items-center gap-2">
+                    <Badge text="GILIRAN KAMU" color="bg-[#f4c430] text-black" />
+                    <h2 className="text-sm font-bold text-[#f4c430]">⚡ {currentStep.label} — Rekomendasi Pick</h2>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
                     {myPicks.length === 0
                       ? mySide === "blue"
-                        ? "Kamu First Pick: prioritaskan hero meta fleksibel atau Hero Power terkuat."
-                        : "Kamu Second Pick: perhatikan pick pertama lawan untuk langsung counter pick."
-                      : `Pick ke-${myPicks.length + 1}: dihitung dari Hero Power, counter lawan, sinergi & role kosong.`}
+                        ? "First Pick: prioritaskan hero meta S+/S fleksibel atau Hero Power terkuat."
+                        : "Counter Pick: pilih hero yang langsung menekan pick awal lawan."
+                      : "Diurutkan dari kecocokan role kosong, counter lawan, sinergi tim & Hero Power."}
                   </p>
                 </div>
                 {pickLaneFilter && (
@@ -515,7 +689,29 @@ export function DraftWorkspace() {
                 )}
               </div>
 
-              {heroPowerPrompt}
+              {/* Lane filter pills */}
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_LANES.map((lane) => {
+                  const isOpen = missingLanes.includes(lane);
+                  const isFiltered = pickLaneFilter === lane;
+                  return (
+                    <button
+                      key={lane}
+                      type="button"
+                      onClick={() => setPickLaneFilter((cur) => (cur === lane ? null : lane))}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
+                        isFiltered
+                          ? "bg-[#f4c430] text-black border-[#f4c430]"
+                          : isOpen
+                            ? "border-[#f4c430]/40 bg-[#f4c430]/10 text-[#f4c430]"
+                            : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                      }`}
+                    >
+                      {isOpen ? "?" : "✓"} {LANE_LABELS[lane]}
+                    </button>
+                  );
+                })}
+              </div>
 
               <div className="space-y-2">
                 {shownPickRecs.map((rec) => {
@@ -531,6 +727,8 @@ export function DraftWorkspace() {
                       hero={rec.hero}
                       badgeText={rec.category}
                       badgeColor={badgeColor}
+                      metaTier={rec.metaTier}
+                      statText={`WR ${rec.winRate}%`}
                       extraBadges={
                         <>
                           {rec.missingRole && <Badge text={rec.missingRole} color="bg-sky-500/20 text-sky-300" />}
@@ -541,16 +739,10 @@ export function DraftWorkspace() {
                       reasons={rec.reasons}
                       actionLabel="+ Pick"
                       actionClassName="bg-[#f4c430]/20 text-[#f4c430] hover:bg-[#f4c430]/30"
-                      actionDisabled={myPicks.length >= 5 || allUsed.includes(rec.hero.id)}
-                      onAction={() => quickPick(rec.hero.id)}
+                      onAction={() => recordStep(rec.hero.id)}
                     />
                   );
                 })}
-                {shownPickRecs.length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-3">
-                    Semua hero pada filter ini sudah terpakai atau di-ban.
-                  </p>
-                )}
               </div>
 
               {pickRecs.length > 5 && (
@@ -562,141 +754,104 @@ export function DraftWorkspace() {
                   {showMorePicks ? "Tampilkan 5 teratas ▲" : "Lihat 5 kandidat pick lainnya ▼"}
                 </button>
               )}
-            </div>
-          )}
 
-          {(enemyThreats.counterThreats.length > 0 || enemyThreats.synergyThreats.length > 0) && enemyPicks.length < 5 && (
-            <div className="card p-4 border-orange-500/20 space-y-2.5">
-              <div>
-                <h2 className="text-xs font-bold text-orange-300">👁️ Prediksi Ancaman Pick Lawan Berikutnya</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Lawan masih butuh: {enemyThreats.enemyMissingLanes.map((l) => LANE_LABELS[l]).join(", ") || "Fleksibel"}.
-                </p>
+              <div className="pt-2 border-t border-white/5">
+                <HeroPicker
+                  label="Atau masukkan hero lain yang dipilih tim kamu:"
+                  value={[]}
+                  onChange={(ids) => {
+                    if (ids[0]) recordStep(ids[0]);
+                  }}
+                  max={1}
+                  hideCounter
+                  exclude={allUsed}
+                  accent="blue"
+                  placeholder="Cari hero pick tim kamu..."
+                />
               </div>
-              {enemyThreats.counterThreats.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-semibold text-rose-300">Waspada lawan pick counter tim kamu:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {enemyThreats.counterThreats.map(({ hero, threatens }) => (
-                      <div key={hero.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                        <HeroAvatar hero={hero} size={24} />
-                        <div>
-                          <div className="text-xs font-bold">{hero.name}</div>
-                          <div className="text-[10px] text-rose-300">Counter {threatens.join(", ")}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {enemyThreats.synergyThreats.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-semibold text-amber-300">Potensi kombo lanjutan lawan:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {enemyThreats.synergyThreats.map(({ hero, comboWith }) => (
-                      <div key={hero.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                        <HeroAvatar hero={hero} size={24} />
-                        <div>
-                          <div className="text-xs font-bold">{hero.name}</div>
-                          <div className="text-[10px] text-amber-300">Sinergi dgn {comboWith.join(", ")}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          <div className="card p-4 border-sky-500/20">
-            <HeroPicker
-              label={`✅ Pick tim kamu (${myPicks.length}/5)`}
-              value={myPicks}
-              onChange={setMyPicks}
-              max={5}
-              exclude={without(myPicks)}
-              accent="blue"
-            />
-          </div>
-
-          <div className="card p-4 border-rose-500/20">
-            <HeroPicker
-              label={`🔴 Pick tim lawan (${enemyPicks.length}/5)`}
-              value={enemyPicks}
-              onChange={setEnemyPicks}
-              max={5}
-              exclude={without(enemyPicks)}
-              accent="red"
-            />
-          </div>
-
-          {myEval && (
-            <div className="card p-3.5 border-emerald-500/15 space-y-1">
-              <p className="text-xs font-bold text-emerald-300">📊 Status Komposisi Tim Kamu</p>
-              <p className="text-[11px] text-slate-300 leading-snug">{myEval.winCondition}</p>
-              {myEval.weaknesses.length > 0 && <p className="text-[11px] text-amber-300">⚠️ {myEval.weaknesses[0]}</p>}
+          {/* LIVE COMBO OPTIONS (ALWAYS VISIBLE AT EVERY STEP) */}
+          <section className="space-y-2">
+            <div>
+              <h2 className="text-sm font-bold text-[#f4c430]">🔗 Opsi Kombo Melawan Lawan (Live)</h2>
+              <p className="text-[11px] text-slate-400">
+                Diperbarui otomatis setiap ada hero di-ban atau di-pick — manfaatkan celah draft lawan dengan kombo berikut.
+              </p>
             </div>
-          )}
+            <div className="space-y-2">
+              {combos.map((c, i) => (
+                <ComboCard key={c.id} combo={c} index={i} />
+              ))}
+            </div>
+          </section>
 
-          <button
-            type="button"
-            onClick={() => setPhase("result")}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#f4c430] to-[#c99a2e] text-black font-bold active:scale-[0.98] transition"
-          >
-            Lihat Hasil &amp; Analisis Lengkap →
-          </button>
+          {/* ENEMY THREATS PREVIEW */}
+          {(enemyThreats.counterThreats.length > 0 || enemyThreats.synergyThreats.length > 0) &&
+            enemyPicks.length < 5 && (
+              <div className="card p-4 border-orange-500/20 space-y-2.5">
+                <div>
+                  <h2 className="text-xs font-bold text-orange-300">👁️ Prediksi Ancaman Pick Lawan Berikutnya</h2>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Lawan masih butuh: {enemyThreats.enemyMissingLanes.map((l) => LANE_LABELS[l]).join(", ") || "Fleksibel"}.
+                  </p>
+                </div>
+                {enemyThreats.counterThreats.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold text-rose-300">Waspada lawan pick counter tim kamu:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {enemyThreats.counterThreats.map(({ hero, threatens }) => (
+                        <div
+                          key={hero.id}
+                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20"
+                        >
+                          <HeroAvatar hero={hero} size={24} />
+                          <div>
+                            <div className="text-xs font-bold">{hero.name}</div>
+                            <div className="text-[10px] text-rose-300">Counter {threatens.join(", ")}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {enemyThreats.synergyThreats.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold text-amber-300">Potensi kombo lanjutan lawan:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {enemyThreats.synergyThreats.map(({ hero, comboWith }) => (
+                        <div
+                          key={hero.id}
+                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                        >
+                          <HeroAvatar hero={hero} size={24} />
+                          <div>
+                            <div className="text-xs font-bold">{hero.name}</div>
+                            <div className="text-[10px] text-amber-300">Sinergi dgn {comboWith.join(", ")}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       )}
 
-      {/* ===== RESULT / ANALYSIS PHASE ===== */}
-      {phase === "result" && (
+      {/* ===== RESULT / FULL ANALYSIS VIEW ===== */}
+      {(draftFinished || viewAnalysis) && (
         <div className="space-y-4">
           <div className="card p-4 text-center">
             <p className="text-lg font-bold text-[#f4c430]">
-              {picksDone ? "🎮 Draft Selesai!" : "📊 Ringkasan Draft Sementara"}
+              {draftFinished ? "🎮 Draft Selesai!" : "📊 Ringkasan Draft Sementara"}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              {picksDone
+              {draftFinished
                 ? "Berikut perbandingan kekuatan, kombo terbaik, dan win condition kedua tim."
-                : "Kamu tetap bisa kembali ke tab Ban/Pick untuk melengkapi atau mengubah hero."}
+                : "Klik 'Kembali ke Panduan Live' di atas untuk melanjutkan langkah draft."}
             </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className={`card p-3 ${mySide === "blue" ? "border-sky-500/20" : "border-rose-500/20"}`}>
-              <p className={`text-xs font-bold mb-2 ${mySide === "blue" ? "text-sky-300" : "text-rose-300"}`}>
-                Tim Kamu ({myPicks.length}/5)
-              </p>
-              <div className="space-y-1.5">
-                {myPicks.length === 0 && <p className="text-[11px] text-slate-500">Belum ada pick</p>}
-                {myPicks.map((id) => {
-                  const h = getHeroById(id);
-                  return h ? (
-                    <div key={id} className="flex items-center gap-1.5">
-                      <HeroAvatar hero={h} size={24} />
-                      <span className="text-[11px] font-medium truncate">{h.name}</span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
-            <div className={`card p-3 ${mySide === "blue" ? "border-rose-500/20" : "border-sky-500/20"}`}>
-              <p className={`text-xs font-bold mb-2 ${mySide === "blue" ? "text-rose-300" : "text-sky-300"}`}>
-                Tim Lawan ({enemyPicks.length}/5)
-              </p>
-              <div className="space-y-1.5">
-                {enemyPicks.length === 0 && <p className="text-[11px] text-slate-500">Belum ada pick</p>}
-                {enemyPicks.map((id) => {
-                  const h = getHeroById(id);
-                  return h ? (
-                    <div key={id} className="flex items-center gap-1.5">
-                      <HeroAvatar hero={h} size={24} />
-                      <span className="text-[11px] font-medium truncate">{h.name}</span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
           </div>
 
           {myEval && enemyEval && (
@@ -745,7 +900,7 @@ export function DraftWorkspace() {
           <section className="space-y-2">
             <div>
               <h2 className="text-sm font-bold">🔗 Rekomendasi Kombo Tim</h2>
-              <p className="text-xs text-slate-500">Strategi eksekusi paling cocok berdasarkan pick kamu &amp; lawan.</p>
+              <p className="text-xs text-slate-500">Strategi eksekusi paling cocok berdasarkan ban, pick kamu &amp; lawan.</p>
             </div>
             <div className="space-y-2">
               {combos.map((c, i) => (
