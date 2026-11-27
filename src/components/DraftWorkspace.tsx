@@ -1,14 +1,13 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { HeroPicker } from "@/components/HeroPicker";
 import { HeroAvatar } from "@/components/HeroAvatar";
 import { PhaseRow } from "@/components/PhaseBadge";
 import { ComboCard, TeamPhaseCard, MasteryTag, AiNote } from "@/components/AnalysisCards";
 import { CounterDrawer, HeroPowerDrawer, HeroesDrawer } from "@/components/QuickDrawers";
-import { useDraftMode, useHeroPower, useMyLane, useMySide, useTier } from "@/lib/storage";
+import { useHeroPower, useMyLane, useMySide, useTier } from "@/lib/storage";
 import {
   RANK_TIERS,
-  TIER_META_NOTES,
   buildDraftSequence,
   getInitialDraftConfig,
 } from "@/lib/database/draftRules";
@@ -31,7 +30,7 @@ import {
 } from "@/lib/engine/recommendationEngine";
 import { buildComboRecommendations } from "@/lib/database/combosData";
 import { MLBB_HEROES, getHeroById } from "@/lib/database/heroesData";
-import type { DraftMode, Hero, Lane, RankTier, Role } from "@/lib/types";
+import type { Hero, Lane, RankTier, Role } from "@/lib/types";
 
 type Side = "blue" | "red";
 type Drawer = "hero-power" | "counter" | "heroes" | null;
@@ -169,7 +168,7 @@ function RecRow({
 export function DraftWorkspace() {
   const [tier, setTier] = useTier();
   const [heroPower] = useHeroPower();
-  const [mode, setMode] = useDraftMode();
+  const mode = "Ranked Draft" as const;
   const [mySide, setMySide] = useMySide();
   const [myLane, setMyLane] = useMyLane();
   const [drawer, setDrawer] = useState<Drawer>(null);
@@ -178,7 +177,7 @@ export function DraftWorkspace() {
   // Meta sync state
   const [metaVersion, setMetaVersion] = useState(0);
   const [metaSyncing, setMetaSyncing] = useState(false);
-  const [metaStatus, setMetaStatus] = useState<string>(META_PATCH_INFO.patch);
+  const [metaStatus, setMetaStatus] = useState<string>(`Auto-sync · ${META_PATCH_INFO.patch}`);
 
   // Sequential live draft log + active step index
   const [log, setLog] = useState<DraftLogEntry[]>([]);
@@ -193,11 +192,9 @@ export function DraftWorkspace() {
 
   const activeLaneFilter = laneOverride === "unset" ? myLane : laneOverride;
 
-  const syncMeta = async () => {
-    if (metaSyncing) return;
-    setMetaSyncing(true);
+  const syncMeta = useCallback(async (signal?: AbortSignal) => {
     try {
-      const res = await fetch(`/api/meta?tier=${encodeURIComponent(tier)}`);
+      const res = await fetch(`/api/meta?tier=${encodeURIComponent(tier)}`, { signal });
       const data = (await res.json()) as {
         live?: boolean;
         source?: string;
@@ -208,16 +205,32 @@ export function DraftWorkspace() {
       if (data.overrides && Object.keys(data.overrides).length > 0) {
         setLiveMetaOverrides(data.overrides);
         setMetaVersion((v) => v + 1);
-        setMetaStatus(`Live Sync (${data.count} hero)`);
+        setMetaStatus(`Auto-sync Live (${data.count} hero)`);
       } else {
-        setMetaStatus(`${data.patch ?? META_PATCH_INFO.patch} · Snapshot`);
+        setMetaStatus(`Auto-sync · ${data.patch ?? META_PATCH_INFO.patch}`);
       }
     } catch {
-      setMetaStatus(`${META_PATCH_INFO.patch} · Lokal`);
+      if (!signal?.aborted) {
+        setMetaStatus(`${META_PATCH_INFO.patch} · Lokal`);
+      }
     } finally {
-      setMetaSyncing(false);
+      if (!signal?.aborted) {
+        setMetaSyncing(false);
+      }
     }
-  };
+  }, [tier]);
+
+  // Auto-sync on mount & whenever rank tier changes
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      void syncMeta(controller.signal);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [syncMeta]);
 
   const config = useMemo(() => getInitialDraftConfig(tier, mode), [tier, mode]);
   const bansPerTeam = config.bansPerTeam;
@@ -251,9 +264,8 @@ export function DraftWorkspace() {
     [log, currentStep]
   );
 
-  const resetWith = (nextTier: RankTier, nextMode: DraftMode, nextSide: Side) => {
+  const resetWith = (nextTier: RankTier, nextSide: Side) => {
     setTier(nextTier);
-    setMode(nextMode);
     setMySide(nextSide);
     setLog([]);
     setStepIdx(0);
@@ -370,15 +382,18 @@ export function DraftWorkspace() {
           </h1>
           <div className="flex items-center gap-2 flex-wrap mt-0.5">
             <span className="text-[11px] text-slate-400">
-              {mode === "Tournament Draft" ? "Turnamen MPL" : tier} · {bansPerTeam} ban/tim · {metaStatus}
+              {tier} · {bansPerTeam} ban/tim · {metaStatus}
             </span>
             <button
               type="button"
-              onClick={syncMeta}
+              onClick={() => {
+                setMetaSyncing(true);
+                void syncMeta();
+              }}
               disabled={metaSyncing}
               className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-[10px] font-semibold text-[#f4c430] disabled:opacity-50"
             >
-              {metaSyncing ? "⏳ Sync..." : "🔄 Sync Meta"}
+              {metaSyncing ? "⏳ Sync..." : "🔄"}
             </button>
           </div>
         </div>
@@ -434,12 +449,11 @@ export function DraftWorkspace() {
         </button>
       </div>
 
-      {/* Collapsible Mode, Tier, Side & Sticky Posisi Saya */}
+      {/* Collapsible Tier, Side & Sticky Posisi Saya */}
       {(log.length > 0 || stepIdx > 0) && !showSettings ? (
         <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
           <span className="text-slate-300 truncate">
-            {mode === "Tournament Draft" ? "🏟️ MPL" : `${tierIcon[tier]} ${tier}`} ·{" "}
-            {mySide === "blue" ? "🔵 Biru" : "🔴 Merah"}
+            {tierIcon[tier]} {tier} · {mySide === "blue" ? "🔵 Biru" : "🔴 Merah"}
             {myLane ? ` · 📌 ${LANE_LABELS[myLane]}` : ""}
           </span>
           <button
@@ -498,44 +512,27 @@ export function DraftWorkspace() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white/[0.04]">
-            {(["Ranked Draft", "Tournament Draft"] as DraftMode[]).map((m) => (
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            {RANK_TIERS.map((t) => (
               <button
-                key={m}
+                key={t}
                 type="button"
-                onClick={() => resetWith(tier, m, mySide)}
-                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
-                  mode === m ? "bg-[#f4c430] text-black" : "text-slate-400 hover:text-white"
+                onClick={() => resetWith(t, mySide)}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
+                  t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
                 }`}
               >
-                {m === "Ranked Draft" ? "🏆 Meta Ranked" : "🏟️ Turnamen (MPL)"}
+                {tierIcon[t]} {t}
               </button>
             ))}
           </div>
-
-          {mode === "Ranked Draft" && (
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-              {RANK_TIERS.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => resetWith(t, mode, mySide)}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
-                    t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
-                  }`}
-                >
-                  {tierIcon[t]} {t}
-                </button>
-              ))}
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white/[0.04]">
             {(["blue", "red"] as Side[]).map((s) => (
               <button
                 key={s}
                 type="button"
-                onClick={() => resetWith(tier, mode, s)}
+                onClick={() => resetWith(tier, s)}
                 className={`py-1.5 rounded-lg text-xs font-semibold transition ${
                   mySide === s
                     ? s === "blue"
@@ -548,14 +545,6 @@ export function DraftWorkspace() {
               </button>
             ))}
           </div>
-
-          <p className="text-[10px] text-slate-500 leading-snug">
-            {mode === "Tournament Draft"
-              ? "Urutan MPL: Ban Fase 1 (2+2) → Pick Fase 1 (B1, R1-2, B2-3, R3) → Ban Fase 2 (3+3) → Pick Fase 2 (R4, B4-5, R5)."
-              : tier === "Epic"
-                ? `Urutan Epic: Ban bergantian (3+3) → Pick pola ular (B1 → R1-2 → B2-3 → R3-4 → B4-5 → R5).`
-                : `Urutan ${tier}: Ban serentak (${bansPerTeam}/tim) → Pick pola ular (B1 → R1-2 → B2-3 → R3-4 → B4-5 → R5). ${TIER_META_NOTES[tier]}`}
-          </p>
         </div>
       )}
 
@@ -752,8 +741,7 @@ export function DraftWorkspace() {
                     <h2 className="text-sm font-bold text-[#f4c430]">🚫 {currentStep.label}</h2>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Diurutkan dari prioritas tertinggi (#1 teratas) sesuai data ban rate{" "}
-                    {mode === "Tournament Draft" ? "Turnamen MPL" : tier}.
+                    Diurutkan dari prioritas tertinggi (#1 teratas) sesuai data ban rate {tier}.
                   </p>
                 </div>
                 {currentStep.simultaneous && (

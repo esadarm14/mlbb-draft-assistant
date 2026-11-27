@@ -4,16 +4,26 @@ import { META_PATCH_INFO, type LiveMetaOverride } from '@/lib/database/metaData'
 
 const heroByName = new Map(MLBB_HEROES.map((h) => [h.name.toLowerCase(), h.id]));
 
+const RANK_PARAM: Record<string, string> = {
+  Epic: 'epic',
+  Legend: 'legend',
+  Mythic: 'mythic',
+  'Mythical Honor': 'honor',
+  'Mythical Glory': 'glory',
+  'Mythical Immortal': 'glory',
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tier = searchParams.get('tier') || 'Mythic';
+  const rankParam = RANK_PARAM[tier] || 'mythic';
   const syncedAt = new Date().toISOString();
 
   // Attempt fast live fetch from community Moonton rank stats mirror
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch('https://mlbb-stats.ridwaanhall.com/api/hero-rank/?days=1&rank=mythic&size=135&index=1&sort_field=ban_rate&sort_order=desc', {
+    const timer = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(`https://mlbb-stats.ridwaanhall.com/api/hero-rank/?days=1&rank=${rankParam}&size=135&index=1&sort_field=ban_rate&sort_order=desc`, {
       signal: controller.signal,
       next: { revalidate: 3600 },
     });
