@@ -53,13 +53,24 @@ export interface DraftStep {
   action: 'ban' | 'pick';
   side: 'blue' | 'red';
   actor: 'me' | 'enemy';
-  slotNumber: number;
+  /** Number of heroes selected in this turn (e.g. 2 for Red Pick 1&2, 5 for simultaneous ban) */
+  slots: number;
+  /** True for Ranked Legend/Mythic+ blind simultaneous ban phase */
+  simultaneous?: boolean;
   label: string;
 }
 
 /**
- * Builds the sequential MLBB draft order (Ban Phase 1 -> Pick Phase 1 -> Ban Phase 2 -> Pick Phase 2)
- * based on tier ban count, draft mode, and user's side.
+ * Builds the official MLBB draft order:
+ * - Ranked Mythic+ (10 bans): Simultaneous blind bans (5 per team), then snake picks:
+ *   B1 -> R1,R2 -> B2,B3 -> R3,R4 -> B4,B5 -> R5
+ * - Ranked Legend (8 bans): Simultaneous blind bans (4 per team), then same snake picks
+ * - Ranked Epic (6 bans): Alternating bans (B1,R1,B2,R2,B3,R3), then same snake picks
+ * - Tournament Draft (MPL 10 bans):
+ *   Ban 1: B1 -> R1 -> B2 -> R2
+ *   Pick 1: B1 -> R1,R2 -> B2,B3 -> R3
+ *   Ban 2: R3 -> B3 -> R4 -> B4 -> R5 -> B5
+ *   Pick 2: R4 -> B4,B5 -> R5
  */
 export function buildDraftSequence(
   tier: RankTier,
@@ -67,32 +78,76 @@ export function buildDraftSequence(
   mySide: 'blue' | 'red'
 ): DraftStep[] {
   const bansPerTeam = getInitialDraftConfig(tier, mode).bansPerTeam;
-  const rawSteps: Array<{ phase: DraftStep['phase']; phaseLabel: string; action: 'ban' | 'pick'; side: 'blue' | 'red' }> = [];
+  const rawSteps: Array<{
+    phase: DraftStep['phase'];
+    phaseLabel: string;
+    action: 'ban' | 'pick';
+    side: 'blue' | 'red';
+    slots: number;
+    simultaneous?: boolean;
+    customSuffix?: string;
+  }> = [];
 
-  // Ban Phase 1 (Epic: all 3 per team; Legend: 3 per team; Mythic+/Tournament: 3 per team)
-  const ban1PerTeam = bansPerTeam <= 3 ? bansPerTeam : 3;
-  for (let i = 0; i < ban1PerTeam; i++) {
-    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'blue' });
-    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'red' });
-  }
+  if (mode === 'Tournament Draft') {
+    // Phase 1 Ban: 2 each alternating (4 total)
+    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'red', slots: 1 });
+    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase 1', action: 'ban', side: 'red', slots: 1 });
 
-  // Pick Phase 1 (3 picks per team: B1 -> R1,R2 -> B2,B3 -> R3)
-  const pick1Order: Array<'blue' | 'red'> = ['blue', 'red', 'red', 'blue', 'blue', 'red'];
-  for (const side of pick1Order) {
-    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase 1', action: 'pick', side });
-  }
+    // Phase 1 Pick: B1 -> R1,R2 -> B2,B3 -> R3
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase 1', action: 'pick', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase 1', action: 'pick', side: 'red', slots: 2 });
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase 1', action: 'pick', side: 'blue', slots: 2 });
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase 1', action: 'pick', side: 'red', slots: 1 });
 
-  // Ban Phase 2 (for 4 or 5 bans per team)
-  const ban2PerTeam = bansPerTeam - ban1PerTeam;
-  for (let i = 0; i < ban2PerTeam; i++) {
-    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'red' });
-    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'blue' });
-  }
+    // Phase 2 Ban: 3 each alternating, Red first (6 total)
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'red', slots: 1 });
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'red', slots: 1 });
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'red', slots: 1 });
+    rawSteps.push({ phase: 'ban2', phaseLabel: 'Ban Fase 2', action: 'ban', side: 'blue', slots: 1 });
 
-  // Pick Phase 2 (remaining 2 picks per team: R4 -> B4,B5 -> R5)
-  const pick2Order: Array<'blue' | 'red'> = ['red', 'blue', 'blue', 'red'];
-  for (const side of pick2Order) {
-    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase 2', action: 'pick', side });
+    // Phase 2 Pick: R4 -> B4,B5 -> R5
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase 2', action: 'pick', side: 'red', slots: 1 });
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase 2', action: 'pick', side: 'blue', slots: 2 });
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase 2', action: 'pick', side: 'red', slots: 1 });
+  } else {
+    // Ranked Draft / Custom Draft
+    if (tier === 'Epic') {
+      // Epic: 3 alternating bans per team
+      for (let i = 0; i < bansPerTeam; i++) {
+        rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase (Bergantian)', action: 'ban', side: 'blue', slots: 1 });
+        rawSteps.push({ phase: 'ban1', phaseLabel: 'Ban Fase (Bergantian)', action: 'ban', side: 'red', slots: 1 });
+      }
+    } else {
+      // Legend (4) & Mythic+ (5): Simultaneous blind ban phase
+      rawSteps.push({
+        phase: 'ban1',
+        phaseLabel: 'Ban Serentak (Simultan)',
+        action: 'ban',
+        side: mySide,
+        slots: bansPerTeam,
+        simultaneous: true,
+      });
+      rawSteps.push({
+        phase: 'ban1',
+        phaseLabel: 'Ban Serentak (Reveal Lawan)',
+        action: 'ban',
+        side: mySide === 'blue' ? 'red' : 'blue',
+        slots: bansPerTeam,
+        simultaneous: true,
+      });
+    }
+
+    // Ranked Snake Pick Pattern: B1 -> R1,R2 -> B2,B3 -> R3,R4 -> B4,B5 -> R5
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase', action: 'pick', side: 'blue', slots: 1 });
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase', action: 'pick', side: 'red', slots: 2 });
+    rawSteps.push({ phase: 'pick1', phaseLabel: 'Pick Fase', action: 'pick', side: 'blue', slots: 2 });
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase', action: 'pick', side: 'red', slots: 2 });
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase', action: 'pick', side: 'blue', slots: 2 });
+    rawSteps.push({ phase: 'pick2', phaseLabel: 'Pick Fase (Last Pick)', action: 'pick', side: 'red', slots: 1 });
   }
 
   const counters = {
@@ -104,25 +159,24 @@ export function buildDraftSequence(
 
   return rawSteps.map((step, index) => {
     const actor: 'me' | 'enemy' = step.side === mySide ? 'me' : 'enemy';
-    let slotNumber = 1;
     let label = '';
 
-    if (step.action === 'ban' && actor === 'me') {
+    if (step.simultaneous) {
+      label = actor === 'me' ? `Ban Serentak Tim Kamu (${step.slots} hero)` : `Ban Serentak Lawan (maks ${step.slots} hero)`;
+    } else if (step.action === 'ban' && actor === 'me') {
       counters.myBan += 1;
-      slotNumber = counters.myBan;
-      label = `Ban #${slotNumber} Tim Kamu`;
+      label = `Ban #${counters.myBan} Tim Kamu`;
     } else if (step.action === 'ban' && actor === 'enemy') {
       counters.enemyBan += 1;
-      slotNumber = counters.enemyBan;
-      label = `Ban #${slotNumber} Lawan`;
+      label = `Ban #${counters.enemyBan} Lawan`;
     } else if (step.action === 'pick' && actor === 'me') {
-      counters.myPick += 1;
-      slotNumber = counters.myPick;
-      label = `Pick #${slotNumber} Tim Kamu`;
+      const start = counters.myPick + 1;
+      counters.myPick += step.slots;
+      label = step.slots > 1 ? `Pick #${start} & #${counters.myPick} Tim Kamu` : `Pick #${start} Tim Kamu`;
     } else {
-      counters.enemyPick += 1;
-      slotNumber = counters.enemyPick;
-      label = `Pick #${slotNumber} Lawan`;
+      const start = counters.enemyPick + 1;
+      counters.enemyPick += step.slots;
+      label = step.slots > 1 ? `Pick #${start} & #${counters.enemyPick} Lawan` : `Pick #${start} Lawan`;
     }
 
     return {
@@ -132,7 +186,8 @@ export function buildDraftSequence(
       action: step.action,
       side: step.side,
       actor,
-      slotNumber,
+      slots: step.slots,
+      simultaneous: step.simultaneous,
       label,
     };
   });

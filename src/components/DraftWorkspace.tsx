@@ -54,6 +54,7 @@ function Badge({ text, color }: { text: string; color: string }) {
 }
 
 interface RecRowProps {
+  rank: number;
   hero: Hero;
   badgeText: string;
   badgeColor: string;
@@ -69,6 +70,7 @@ interface RecRowProps {
 }
 
 function RecRow({
+  rank,
   hero,
   badgeText,
   badgeColor,
@@ -85,14 +87,33 @@ function RecRow({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl bg-white/[0.03] border border-white/5 overflow-hidden">
+    <div
+      className={`rounded-xl border overflow-hidden ${
+        rank <= 3
+          ? "bg-[#f4c430]/[0.06] border-[#f4c430]/25"
+          : "bg-white/[0.03] border-white/5"
+      }`}
+    >
       <div className="flex items-center gap-2.5 p-2.5">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
           className="flex flex-1 min-w-0 items-center gap-2.5 text-left"
         >
-          <HeroAvatar hero={hero} size={40} />
+          <div className="relative shrink-0">
+            <HeroAvatar hero={hero} size={40} />
+            <span
+              className={`absolute -top-1 -left-1 w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center ${
+                rank === 1
+                  ? "bg-[#f4c430] text-black"
+                  : rank <= 3
+                    ? "bg-white/90 text-black"
+                    : "bg-slate-700 text-slate-200"
+              }`}
+            >
+              {rank}
+            </span>
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-bold truncate">{hero.name}</span>
@@ -144,9 +165,11 @@ export function DraftWorkspace() {
   const [mode, setMode] = useState<DraftMode>("Ranked Draft");
   const [mySide, setMySide] = useState<Side>("blue");
   const [drawer, setDrawer] = useState<Drawer>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
-  // Sequential live draft log
+  // Sequential live draft log + active step index
   const [log, setLog] = useState<DraftLogEntry[]>([]);
+  const [stepIdx, setStepIdx] = useState(0);
   const [viewAnalysis, setViewAnalysis] = useState(false);
 
   // List UI state
@@ -159,7 +182,7 @@ export function DraftWorkspace() {
 
   const draftSequence = useMemo(() => buildDraftSequence(tier, mode, mySide), [tier, mode, mySide]);
 
-  // Derive teams from sequential log
+  // Derive teams from log
   const { myBans, enemyBans, myPicks, enemyPicks } = useMemo(() => {
     const mb: string[] = [];
     const eb: string[] = [];
@@ -177,54 +200,67 @@ export function DraftWorkspace() {
   const allBans = useMemo(() => [...myBans, ...enemyBans], [myBans, enemyBans]);
   const allUsed = useMemo(() => [...allBans, ...myPicks, ...enemyPicks], [allBans, myPicks, enemyPicks]);
 
-  const currentStep = log.length < draftSequence.length ? draftSequence[log.length] : null;
-  const draftFinished = log.length >= draftSequence.length;
+  const currentStep = stepIdx < draftSequence.length ? draftSequence[stepIdx] : null;
+  const draftFinished = stepIdx >= draftSequence.length;
   const lastEntry = log.length > 0 ? log[log.length - 1] : undefined;
 
-  const selectTier = (nextTier: RankTier) => {
+  const currentStepEntries = useMemo(
+    () => (currentStep ? log.filter((e) => e.stepIndex === currentStep.index) : []),
+    [log, currentStep]
+  );
+
+  const resetWith = (nextTier: RankTier, nextMode: DraftMode, nextSide: Side) => {
     setTier(nextTier);
-    setLog([]);
-    setViewAnalysis(false);
-  };
-
-  const selectMode = (nextMode: DraftMode) => {
     setMode(nextMode);
-    setLog([]);
-    setViewAnalysis(false);
-  };
-
-  const selectSide = (nextSide: Side) => {
     setMySide(nextSide);
     setLog([]);
+    setStepIdx(0);
     setViewAnalysis(false);
   };
 
   const recordStep = (heroId: string) => {
     if (!currentStep || allUsed.includes(heroId)) return;
-    setLog((prev) => [
-      ...prev,
-      {
-        stepIndex: currentStep.index,
-        action: currentStep.action,
-        actor: currentStep.actor,
-        heroId,
-      },
-    ]);
+    const nextEntry: DraftLogEntry = {
+      stepIndex: currentStep.index,
+      action: currentStep.action,
+      actor: currentStep.actor,
+      heroId,
+    };
+    const newCountInStep = currentStepEntries.length + 1;
+    setLog((prev) => [...prev, nextEntry]);
+    if (newCountInStep >= currentStep.slots) {
+      setStepIdx((i) => i + 1);
+      setShowMoreBans(false);
+      setShowMorePicks(false);
+    }
+  };
+
+  const advanceSimultaneousStep = () => {
+    if (!currentStep) return;
+    setStepIdx((i) => i + 1);
     setShowMoreBans(false);
     setShowMorePicks(false);
   };
 
   const undoStep = () => {
+    if (log.length === 0) {
+      if (stepIdx > 0) setStepIdx((i) => i - 1);
+      return;
+    }
+    const removed = log[log.length - 1];
     setLog((prev) => prev.slice(0, -1));
+    setStepIdx(removed.stepIndex);
     setViewAnalysis(false);
   };
 
   const reset = () => {
     setLog([]);
+    setStepIdx(0);
     setPickLaneFilter(null);
     setShowMoreBans(false);
     setShowMorePicks(false);
     setViewAnalysis(false);
+    setShowSettings(false);
   };
 
   const myHeroes = useMemo(
@@ -276,34 +312,25 @@ export function DraftWorkspace() {
     return { label, winner, tone };
   };
 
-  const heroPowerPrompt = heroPower.length === 0 && (
-    <button
-      type="button"
-      onClick={() => setDrawer("hero-power")}
-      className="w-full text-left rounded-xl border border-[#f4c430]/30 bg-[#f4c430]/10 p-3 text-xs text-[#f4c430] active:scale-[0.99] transition"
-    >
-      💡 Isi Hero Power kamu agar prediksi ban, pick &amp; counter lebih personal →
-    </button>
-  );
-
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-4 pb-8 space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+    <div className="max-w-2xl mx-auto px-4 pt-3 pb-8 space-y-3">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+          <h1 className="text-lg sm:text-xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
             LIVE DRAFT GUIDE
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {mode === "Tournament Draft" ? "Mode Turnamen (MPL)" : tier} · {bansPerTeam} ban/tim · Panduan langkah demi langkah
+          <p className="text-[11px] text-slate-400">
+            {mode === "Tournament Draft" ? "Turnamen MPL" : tier} · {bansPerTeam} ban/tim ·{" "}
+            {mySide === "blue" ? "Tim Biru" : "Tim Merah"}
           </p>
         </div>
         <div className="flex gap-1.5">
-          {log.length > 0 && (
+          {(log.length > 0 || stepIdx > 0) && (
             <button
               type="button"
               onClick={undoStep}
-              className="px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-200 hover:bg-white/10 active:scale-95"
+              className="px-2.5 py-1.5 rounded-xl bg-white/5 text-xs text-slate-200 hover:bg-white/10 active:scale-95"
             >
               ↩ Undo
             </button>
@@ -311,147 +338,174 @@ export function DraftWorkspace() {
           <button
             type="button"
             onClick={reset}
-            className="px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 active:scale-95"
+            className="px-2.5 py-1.5 rounded-xl bg-white/5 text-xs text-slate-300 hover:bg-white/10 active:scale-95"
           >
             ↺ Reset
           </button>
         </div>
       </div>
 
-      {/* Single-page compact tool strip */}
+      {/* Single-page compact tool strip + Settings toggle once draft starts */}
       <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
           onClick={() => setDrawer("hero-power")}
-          className={`card p-2.5 text-left transition active:scale-95 ${
+          className={`card p-2 text-left transition active:scale-95 ${
             heroPower.length === 0 ? "border-[#f4c430]/40 bg-[#f4c430]/10" : "hover:border-white/20"
           }`}
         >
           <div className="text-xs font-bold text-[#f4c430] truncate">⚡ Hero Power</div>
-          <div className="text-[11px] text-slate-300 truncate mt-0.5">
+          <div className="text-[10px] text-slate-300 truncate">
             {heroPower.length > 0 ? `${heroPower.length} andalan` : "Atur hero"}
           </div>
         </button>
         <button
           type="button"
           onClick={() => setDrawer("counter")}
-          className="card p-2.5 text-left hover:border-white/20 transition active:scale-95"
+          className="card p-2 text-left hover:border-white/20 transition active:scale-95"
         >
           <div className="text-xs font-bold text-emerald-300 truncate">🛡️ Counter</div>
-          <div className="text-[11px] text-slate-400 truncate mt-0.5">Cek cepat</div>
+          <div className="text-[10px] text-slate-400 truncate">Cek cepat</div>
         </button>
         <button
           type="button"
           onClick={() => setDrawer("heroes")}
-          className="card p-2.5 text-left hover:border-white/20 transition active:scale-95"
+          className="card p-2 text-left hover:border-white/20 transition active:scale-95"
         >
           <div className="text-xs font-bold text-sky-300 truncate">📚 Heroes</div>
-          <div className="text-[11px] text-slate-400 truncate mt-0.5">{MLBB_HEROES.length} hero</div>
+          <div className="text-[10px] text-slate-400 truncate">{MLBB_HEROES.length} hero</div>
         </button>
       </div>
 
-      {/* Mode, Tier & Side Selection */}
-      <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.04]">
-          {(["Ranked Draft", "Tournament Draft"] as DraftMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => selectMode(m)}
-              className={`py-2 rounded-xl text-xs font-semibold transition ${
-                mode === m ? "bg-[#f4c430] text-black" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              {m === "Ranked Draft" ? "🏆 Meta Ranked" : "🏟️ Meta Turnamen (MPL)"}
-            </button>
-          ))}
+      {/* Collapsible Mode, Tier & Side Selection (auto-collapses once draft starts so recommendations stay on top!) */}
+      {(log.length > 0 || stepIdx > 0) && !showSettings ? (
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
+          <span className="text-slate-300 truncate">
+            {mode === "Tournament Draft" ? "🏟️ Turnamen MPL" : `${tierIcon[tier]} ${tier}`} ·{" "}
+            {mySide === "blue" ? "🔵 Biru (First Pick)" : "🔴 Merah (Counter)"}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            className="text-[11px] font-semibold text-[#f4c430] shrink-0 ml-2"
+          >
+            ⚙️ Ubah
+          </button>
         </div>
-
-        {mode === "Ranked Draft" && (
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-            {RANK_TIERS.map((t) => (
+      ) : (
+        <div className="card p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-300">⚙️ Pengaturan Match</span>
+            {(log.length > 0 || stepIdx > 0) && (
               <button
-                key={t}
                 type="button"
-                onClick={() => selectTier(t)}
-                className={`px-3 py-2 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
-                  t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+                onClick={() => setShowSettings(false)}
+                className="text-[11px] text-[#f4c430]"
+              >
+                Tutup ▲
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white/[0.04]">
+            {(["Ranked Draft", "Tournament Draft"] as DraftMode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => resetWith(tier, m, mySide)}
+                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                  mode === m ? "bg-[#f4c430] text-black" : "text-slate-400 hover:text-white"
                 }`}
               >
-                {tierIcon[t]} {t}
+                {m === "Ranked Draft" ? "🏆 Meta Ranked" : "🏟️ Turnamen (MPL)"}
               </button>
             ))}
           </div>
-        )}
-        <p className="text-[11px] text-slate-500 leading-snug">
-          {mode === "Tournament Draft"
-            ? "Meta Turnamen (5 ban/tim): prioritas pada hero flex, kontrol zona (Zhuxin), dan snowball agresif (Freya, Fanny, Chip)."
-            : TIER_META_NOTES[tier]}
-        </p>
 
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.04]">
-          {(["blue", "red"] as Side[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => selectSide(s)}
-              className={`py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                mySide === s
-                  ? s === "blue"
-                    ? "bg-sky-500/20 text-sky-200"
-                    : "bg-rose-500/20 text-rose-200"
-                  : "text-slate-400"
-              }`}
-            >
-              {s === "blue" ? "🔵 Tim Biru (First Pick)" : "🔴 Tim Merah (Counter Pick)"}
-            </button>
-          ))}
+          {mode === "Ranked Draft" && (
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              {RANK_TIERS.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => resetWith(t, mode, mySide)}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border shrink-0 transition active:scale-95 ${
+                    t === tier ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+                  }`}
+                >
+                  {tierIcon[t]} {t}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white/[0.04]">
+            {(["blue", "red"] as Side[]).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => resetWith(tier, mode, s)}
+                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                  mySide === s
+                    ? s === "blue"
+                      ? "bg-sky-500/20 text-sky-200"
+                      : "bg-rose-500/20 text-rose-200"
+                    : "text-slate-400"
+                }`}
+              >
+                {s === "blue" ? "🔵 Tim Biru (First Pick)" : "🔴 Tim Merah (Counter Pick)"}
+              </button>
+            ))}
+          </div>
+
+          <p className="text-[10px] text-slate-500 leading-snug">
+            {mode === "Tournament Draft"
+              ? "Urutan MPL: Ban Fase 1 (2+2) → Pick Fase 1 (B1, R1-2, B2-3, R3) → Ban Fase 2 (3+3) → Pick Fase 2 (R4, B4-5, R5)."
+              : tier === "Epic"
+                ? `Urutan Epic: Ban bergantian (3+3) → Pick pola ular (B1 → R1-2 → B2-3 → R3-4 → B4-5 → R5).`
+                : `Urutan ${tier}: Ban serentak (${bansPerTeam}/tim) → Pick pola ular (B1 → R1-2 → B2-3 → R3-4 → B4-5 → R5). ${TIER_META_NOTES[tier]}`}
+          </p>
         </div>
-      </div>
+      )}
 
       {/* Compact Live Draft Board */}
-      <div className="card p-3 space-y-2.5">
+      <div className="card p-2.5 space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="font-bold text-slate-200">
             {draftFinished
               ? "✅ Draft Selesai"
-              : `📍 Langkah ${log.length + 1}/${draftSequence.length} · ${currentStep?.phaseLabel}`}
+              : `📍 Giliran ${stepIdx + 1}/${draftSequence.length} · ${currentStep?.phaseLabel}`}
           </span>
           <button
             type="button"
             onClick={() => setViewAnalysis((v) => !v)}
             className="text-[11px] font-semibold text-[#f4c430] hover:underline"
           >
-            {viewAnalysis ? "← Kembali ke Panduan Live" : "📊 Lihat Ringkasan"}
+            {viewAnalysis ? "← Kembali ke Panduan" : "📊 Ringkasan"}
           </button>
         </div>
 
-        {/* Progress bar */}
-        <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+        <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[#f4c430] to-emerald-400 transition-all duration-300"
-            style={{ width: `${Math.round((log.length / draftSequence.length) * 100)}%` }}
+            style={{ width: `${Math.round((stepIdx / draftSequence.length) * 100)}%` }}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px]">
-          <div className="rounded-xl bg-sky-500/5 border border-sky-500/15 p-2 space-y-1.5">
+          <div className="rounded-xl bg-sky-500/5 border border-sky-500/15 p-2 space-y-1">
             <div className="font-bold text-sky-300">Tim Kamu ({mySide === "blue" ? "Biru" : "Merah"})</div>
-            <div className="text-[10px] text-slate-400">
-              Ban ({myBans.length}/{bansPerTeam}):{" "}
-              {myBans.length === 0
-                ? "—"
-                : myBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
+            <div className="text-[10px] text-slate-400 truncate">
+              Ban: {myBans.length === 0 ? "—" : myBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
             </div>
             <div className="flex flex-wrap gap-1">
               {myPicks.length === 0 ? (
-                <span className="text-[10px] text-slate-500">Pick: belum ada</span>
+                <span className="text-[10px] text-slate-500">Pick: —</span>
               ) : (
                 myPicks.map((id) => {
                   const h = getHeroById(id);
                   return h ? (
                     <div key={id} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/15">
-                      <HeroAvatar hero={h} size={18} />
+                      <HeroAvatar hero={h} size={16} />
                       <span className="text-[10px] font-medium">{h.name}</span>
                     </div>
                   ) : null;
@@ -460,23 +514,20 @@ export function DraftWorkspace() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-rose-500/5 border border-rose-500/15 p-2 space-y-1.5">
+          <div className="rounded-xl bg-rose-500/5 border border-rose-500/15 p-2 space-y-1">
             <div className="font-bold text-rose-300">Tim Lawan ({mySide === "blue" ? "Merah" : "Biru"})</div>
-            <div className="text-[10px] text-slate-400">
-              Ban ({enemyBans.length}/{bansPerTeam}):{" "}
-              {enemyBans.length === 0
-                ? "—"
-                : enemyBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
+            <div className="text-[10px] text-slate-400 truncate">
+              Ban: {enemyBans.length === 0 ? "—" : enemyBans.map((id) => getHeroById(id)?.name ?? id).join(", ")}
             </div>
             <div className="flex flex-wrap gap-1">
               {enemyPicks.length === 0 ? (
-                <span className="text-[10px] text-slate-500">Pick: belum ada</span>
+                <span className="text-[10px] text-slate-500">Pick: —</span>
               ) : (
                 enemyPicks.map((id) => {
                   const h = getHeroById(id);
                   return h ? (
                     <div key={id} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-500/15">
-                      <HeroAvatar hero={h} size={18} />
+                      <HeroAvatar hero={h} size={16} />
                       <span className="text-[10px] font-medium">{h.name}</span>
                     </div>
                   ) : null;
@@ -490,7 +541,7 @@ export function DraftWorkspace() {
       {/* Live Briefing after last action */}
       {stepBriefing && !viewAnalysis && (
         <div
-          className={`card p-3.5 space-y-1.5 ${
+          className={`card p-3 space-y-1 ${
             stepBriefing.tone === "warning"
               ? "border-rose-500/30 bg-rose-500/5"
               : stepBriefing.tone === "opportunity"
@@ -511,21 +562,32 @@ export function DraftWorkspace() {
       {/* ===== LIVE STEP-BY-STEP GUIDANCE ===== */}
       {!draftFinished && !viewAnalysis && currentStep && (
         <div className="space-y-4">
-          {heroPowerPrompt}
-
           {/* ENEMY TURN (BAN OR PICK) */}
           {currentStep.actor === "enemy" && (
             <div className="card p-4 border-rose-500/30 space-y-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Badge text="GILIRAN LAWAN" color="bg-rose-500/25 text-rose-200" />
-                  <h2 className="text-sm font-bold text-rose-200">{currentStep.label}</h2>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge text="GILIRAN LAWAN" color="bg-rose-500/25 text-rose-200" />
+                    <h2 className="text-sm font-bold text-rose-200">{currentStep.label}</h2>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    {currentStep.simultaneous
+                      ? `Masukkan hero yang di-ban lawan setelah reveal (${currentStepEntries.length}/${currentStep.slots}). Jika ada ban kembar, klik Lanjut Pick.`
+                      : currentStep.action === "ban"
+                        ? "Pilih hero yang di-ban lawan — sistem langsung memperbarui rekomendasi ban & kombo."
+                        : `Pilih hero yang di-pick lawan (${currentStepEntries.length}/${currentStep.slots}) — sistem langsung menyiapkan counter & kombo.`}
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  {currentStep.action === "ban"
-                    ? "Pilih hero yang di-ban lawan — sistem akan langsung merekomendasikan ban berikutnya & opsi kombo yang terbuka."
-                    : "Pilih hero yang di-pick lawan — sistem akan langsung menyiapkan counter pick & opsi kombo terbaik."}
-                </p>
+                {currentStep.simultaneous && (
+                  <button
+                    type="button"
+                    onClick={advanceSimultaneousStep}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-200 text-xs font-bold shrink-0 hover:bg-emerald-500/30"
+                  >
+                    Lanjut Pick →
+                  </button>
+                )}
               </div>
 
               <HeroPicker
@@ -539,14 +601,14 @@ export function DraftWorkspace() {
                 exclude={allUsed}
                 accent="red"
                 placeholder={
-                  currentStep.action === "ban" ? "Ketik nama hero yang di-ban lawan..." : "Ketik nama hero yang di-pick lawan..."
+                  currentStep.action === "ban" ? "Ketik hero ban lawan..." : "Ketik hero pick lawan..."
                 }
               />
 
-              {/* Quick tap chips for common meta bans / predicted enemy picks */}
+              {/* Quick tap chips */}
               {currentStep.action === "ban" && topMetaBans.length > 0 && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] text-slate-400">Tap cepat hero yang sering di-ban di meta ini:</p>
+                  <p className="text-[11px] text-slate-400">Tap cepat hero ban terpopuler di meta ini:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {topMetaBans.map((m) => {
                       const h = getHeroById(m.heroId);
@@ -598,18 +660,30 @@ export function DraftWorkspace() {
           {/* MY TURN: BAN */}
           {currentStep.actor === "me" && currentStep.action === "ban" && (
             <div className="card p-4 border-[#f4c430]/30 space-y-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Badge text="GILIRAN KAMU" color="bg-[#f4c430] text-black" />
-                  <h2 className="text-sm font-bold text-[#f4c430]">🚫 {currentStep.label} — Rekomendasi Ban</h2>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge text="GILIRAN KAMU" color="bg-[#f4c430] text-black" />
+                    <h2 className="text-sm font-bold text-[#f4c430]">🚫 {currentStep.label}</h2>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Diurutkan dari prioritas tertinggi (#1 teratas) sesuai data ban rate{" "}
+                    {mode === "Tournament Draft" ? "Turnamen MPL" : tier}.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Berdasarkan data ban rate {mode === "Tournament Draft" ? "Turnamen MPL" : `Meta ${tier}`} &amp; ancaman terhadap Hero Power kamu.
-                </p>
+                {currentStep.simultaneous && (
+                  <button
+                    type="button"
+                    onClick={advanceSimultaneousStep}
+                    className="px-3 py-1.5 rounded-xl bg-sky-500/20 text-sky-200 text-xs font-bold shrink-0 hover:bg-sky-500/30"
+                  >
+                    Reveal Ban Lawan →
+                  </button>
+                )}
               </div>
 
               <div className="space-y-2">
-                {shownBanRecs.map((rec) => {
+                {shownBanRecs.map((rec, idx) => {
                   const badgeColor =
                     rec.category === "MUST BAN"
                       ? "bg-red-500/20 text-red-300"
@@ -619,6 +693,7 @@ export function DraftWorkspace() {
                   return (
                     <RecRow
                       key={rec.hero.id}
+                      rank={idx + 1}
                       hero={rec.hero}
                       badgeText={rec.category}
                       badgeColor={badgeColor}
@@ -646,7 +721,7 @@ export function DraftWorkspace() {
 
               <div className="pt-2 border-t border-white/5">
                 <HeroPicker
-                  label="Atau pilih hero lain yang kamu/rekan ban:"
+                  label="Atau pilih hero lain yang diban tim kamu:"
                   value={[]}
                   onChange={(ids) => {
                     if (ids[0]) recordStep(ids[0]);
@@ -668,14 +743,12 @@ export function DraftWorkspace() {
                 <div>
                   <div className="flex items-center gap-2">
                     <Badge text="GILIRAN KAMU" color="bg-[#f4c430] text-black" />
-                    <h2 className="text-sm font-bold text-[#f4c430]">⚡ {currentStep.label} — Rekomendasi Pick</h2>
+                    <h2 className="text-sm font-bold text-[#f4c430]">
+                      ⚡ {currentStep.label} ({currentStepEntries.length}/{currentStep.slots})
+                    </h2>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {myPicks.length === 0
-                      ? mySide === "blue"
-                        ? "First Pick: prioritaskan hero meta S+/S fleksibel atau Hero Power terkuat."
-                        : "Counter Pick: pilih hero yang langsung menekan pick awal lawan."
-                      : "Diurutkan dari kecocokan role kosong, counter lawan, sinergi tim & Hero Power."}
+                    Diurutkan dari prioritas #1 teratas (role kosong, counter lawan, sinergi &amp; meta {tier}).
                   </p>
                 </div>
                 {pickLaneFilter && (
@@ -689,32 +762,35 @@ export function DraftWorkspace() {
                 )}
               </div>
 
-              {/* Lane filter pills */}
-              <div className="flex flex-wrap gap-1.5">
-                {ALL_LANES.map((lane) => {
-                  const isOpen = missingLanes.includes(lane);
-                  const isFiltered = pickLaneFilter === lane;
-                  return (
-                    <button
-                      key={lane}
-                      type="button"
-                      onClick={() => setPickLaneFilter((cur) => (cur === lane ? null : lane))}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
-                        isFiltered
-                          ? "bg-[#f4c430] text-black border-[#f4c430]"
-                          : isOpen
-                            ? "border-[#f4c430]/40 bg-[#f4c430]/10 text-[#f4c430]"
-                            : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                      }`}
-                    >
-                      {isOpen ? "?" : "✓"} {LANE_LABELS[lane]}
-                    </button>
-                  );
-                })}
+              {/* Lane filter pills ("Posisi Saya") */}
+              <div className="space-y-1">
+                <div className="text-[10px] text-slate-400 font-semibold">Filter Posisi / Lane Kamu:</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {ALL_LANES.map((lane) => {
+                    const isOpen = missingLanes.includes(lane);
+                    const isFiltered = pickLaneFilter === lane;
+                    return (
+                      <button
+                        key={lane}
+                        type="button"
+                        onClick={() => setPickLaneFilter((cur) => (cur === lane ? null : lane))}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
+                          isFiltered
+                            ? "bg-[#f4c430] text-black border-[#f4c430]"
+                            : isOpen
+                              ? "border-[#f4c430]/40 bg-[#f4c430]/10 text-[#f4c430]"
+                              : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                        }`}
+                      >
+                        {isOpen ? "?" : "✓"} {LANE_LABELS[lane]}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="space-y-2">
-                {shownPickRecs.map((rec) => {
+                {shownPickRecs.map((rec, idx) => {
                   const badgeColor =
                     rec.category === "BEST PICK"
                       ? "bg-emerald-500/20 text-emerald-300"
@@ -724,6 +800,7 @@ export function DraftWorkspace() {
                   return (
                     <RecRow
                       key={rec.hero.id}
+                      rank={idx + 1}
                       hero={rec.hero}
                       badgeText={rec.category}
                       badgeColor={badgeColor}
@@ -772,7 +849,7 @@ export function DraftWorkspace() {
             </div>
           )}
 
-          {/* LIVE COMBO OPTIONS (ALWAYS VISIBLE AT EVERY STEP) */}
+          {/* LIVE COMBO OPTIONS */}
           <section className="space-y-2">
             <div>
               <h2 className="text-sm font-bold text-[#f4c430]">🔗 Opsi Kombo Melawan Lawan (Live)</h2>
@@ -850,7 +927,7 @@ export function DraftWorkspace() {
             <p className="text-xs text-slate-400 mt-1">
               {draftFinished
                 ? "Berikut perbandingan kekuatan, kombo terbaik, dan win condition kedua tim."
-                : "Klik 'Kembali ke Panduan Live' di atas untuk melanjutkan langkah draft."}
+                : "Klik 'Kembali ke Panduan' di atas untuk melanjutkan langkah draft."}
             </p>
           </div>
 

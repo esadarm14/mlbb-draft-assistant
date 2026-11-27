@@ -207,7 +207,20 @@ export function generateBanRecommendations(
     };
   });
 
-  return scored.sort((a, b) => b.banScore - a.banScore || b.banRate - a.banRate).slice(0, limit);
+  const catWeight: Record<BanRecommendation['category'], number> = {
+    'MUST BAN': 3,
+    'PRIORITY BAN': 2,
+    'SITUATIONAL BAN': 1,
+  };
+
+  return scored
+    .sort(
+      (a, b) =>
+        catWeight[b.category] - catWeight[a.category] ||
+        b.banScore - a.banScore ||
+        b.banRate - a.banRate
+    )
+    .slice(0, limit);
 }
 
 // ============================================================
@@ -411,7 +424,22 @@ export function generatePickRecommendations(
     };
   });
 
-  return scored.sort((a, b) => b.pickScore - a.pickScore).slice(0, limit);
+  const scoredWithRoleRank = scored.map((rec) => {
+    const isDup = rec.reasons.some((r) => r.includes('sudah terisi di tim'));
+    const catRank = rec.category === 'BEST PICK' ? 3 : rec.category === 'COUNTER PICK' ? 2 : 1;
+    return { rec, isDup, catRank };
+  });
+
+  return scoredWithRoleRank
+    .sort(
+      (a, b) =>
+        Number(a.isDup) - Number(b.isDup) ||
+        b.catRank - a.catRank ||
+        b.rec.pickScore - a.rec.pickScore ||
+        b.rec.winRate - a.rec.winRate
+    )
+    .map((x) => x.rec)
+    .slice(0, limit);
 }
 
 // ============================================================
