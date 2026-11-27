@@ -1,11 +1,14 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import type { HeroPowerItem, RankTier } from "./types";
+import type { DraftMode, HeroPowerItem, Lane, RankTier } from "./types";
 
 const KEYS = {
   heroPower: "mlbb.heroPower.v1",
   tier: "mlbb.tier.v1",
   recent: "mlbb.recentSearch.v1",
+  myLane: "mlbb.myLane.v1",
+  mode: "mlbb.mode.v1",
+  side: "mlbb.side.v1",
 } as const;
 
 function read<T>(key: string, fallback: T): T {
@@ -65,3 +68,6 @@ function usePersisted<T>(key: string, fallback: T) {
 export const useHeroPower = () => usePersisted<HeroPowerItem[]>(KEYS.heroPower, []);
 export const useTier = () => usePersisted<RankTier>(KEYS.tier, "Mythic");
 export const useRecentSearch = () => usePersisted<string[]>(KEYS.recent, []);
+export const useMyLane = () => usePersisted<Lane | null>(KEYS.myLane, null);
+export const useDraftMode = () => usePersisted<DraftMode>(KEYS.mode, "Ranked Draft");
+export const useMySide = () => usePersisted<"blue" | "red">(KEYS.side, "blue");

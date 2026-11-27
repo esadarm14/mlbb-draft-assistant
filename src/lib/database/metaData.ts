@@ -1,5 +1,23 @@
-import type { DraftMode, Hero, RankTier } from '../types';
-import { getHeroById } from './heroesData';
+import type { DraftMode, Hero, RankTier, Role } from '../types';
+import { MLBB_HEROES, getHeroById } from './heroesData';
+
+export const META_PATCH_INFO = {
+  patch: 'Patch Terbaru (Season 35+)',
+  updatedAt: '2026-11',
+  source: 'Moonton Rank Leaderboard & Tracker Meta',
+};
+
+export type LiveMetaOverride = {
+  banRate?: number;
+  pickRate?: number;
+  winRate?: number;
+};
+
+let liveMetaOverrides: Record<string, LiveMetaOverride> = {};
+
+export function setLiveMetaOverrides(overrides: Record<string, LiveMetaOverride>) {
+  liveMetaOverrides = overrides;
+}
 
 export type MetaTier = 'S+' | 'S' | 'A' | 'B' | 'C';
 
@@ -454,15 +472,17 @@ export function getHeroMetaStats(
     sourceLabel = `Meta Rank ${tier} (Moonton / Tracker)`;
   }
 
+  const live = liveMetaOverrides[key];
+
   if (entry) {
     return {
       heroId: key,
       metaTier: entry.metaTier,
-      banRate: entry.banRate,
-      pickRate: entry.pickRate,
-      winRate: entry.winRate,
+      banRate: live?.banRate ?? entry.banRate,
+      pickRate: live?.pickRate ?? entry.pickRate,
+      winRate: live?.winRate ?? entry.winRate,
       metaReason: entry.reason,
-      sourceLabel,
+      sourceLabel: live ? `${sourceLabel} (Live Sync)` : sourceLabel,
     };
   }
 
@@ -471,15 +491,45 @@ export function getHeroMetaStats(
     return {
       heroId: key,
       metaTier: 'B',
-      banRate: 2.0,
-      pickRate: 5.0,
-      winRate: 50.0,
+      banRate: live?.banRate ?? 2.0,
+      pickRate: live?.pickRate ?? 5.0,
+      winRate: live?.winRate ?? 50.0,
       metaReason: 'Hero situasional.',
       sourceLabel,
     };
   }
 
-  return computeFallbackMeta(hero, tier, mode);
+  const fallback = computeFallbackMeta(hero, tier, mode);
+  if (live) {
+    return {
+      ...fallback,
+      banRate: live.banRate ?? fallback.banRate,
+      pickRate: live.pickRate ?? fallback.pickRate,
+      winRate: live.winRate ?? fallback.winRate,
+      sourceLabel: `${sourceLabel} (Live Sync)`,
+    };
+  }
+  return fallback;
+}
+
+export function getQuickHeroesByRole(
+  role: Role | 'All',
+  tier: RankTier = 'Mythic',
+  mode: DraftMode = 'Ranked Draft',
+  excludeIds: string[] = [],
+  limit = 10
+): Array<{ hero: Hero; meta: HeroMetaStats }> {
+  const excluded = new Set(excludeIds.map((id) => id.toLowerCase()));
+  return MLBB_HEROES.filter(
+    (h) => !excluded.has(h.id.toLowerCase()) && (role === 'All' || h.roles.includes(role))
+  )
+    .map((hero) => ({ hero, meta: getHeroMetaStats(hero.id, tier, mode) }))
+    .sort(
+      (a, b) =>
+        b.meta.banRate + b.meta.pickRate - (a.meta.banRate + a.meta.pickRate) ||
+        b.meta.winRate - a.meta.winRate
+    )
+    .slice(0, limit);
 }
 
 export function getTopMetaBans(

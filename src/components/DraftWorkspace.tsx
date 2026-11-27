@@ -5,14 +5,20 @@ import { HeroAvatar } from "@/components/HeroAvatar";
 import { PhaseRow } from "@/components/PhaseBadge";
 import { ComboCard, TeamPhaseCard, MasteryTag, AiNote } from "@/components/AnalysisCards";
 import { CounterDrawer, HeroPowerDrawer, HeroesDrawer } from "@/components/QuickDrawers";
-import { useHeroPower, useTier } from "@/lib/storage";
+import { useDraftMode, useHeroPower, useMyLane, useMySide, useTier } from "@/lib/storage";
 import {
   RANK_TIERS,
   TIER_META_NOTES,
   buildDraftSequence,
   getInitialDraftConfig,
 } from "@/lib/database/draftRules";
-import { getTopMetaBans, type MetaTier } from "@/lib/database/metaData";
+import {
+  META_PATCH_INFO,
+  getQuickHeroesByRole,
+  setLiveMetaOverrides,
+  type LiveMetaOverride,
+  type MetaTier,
+} from "@/lib/database/metaData";
 import {
   LANE_LABELS,
   buildStepBriefing,
@@ -25,12 +31,13 @@ import {
 } from "@/lib/engine/recommendationEngine";
 import { buildComboRecommendations } from "@/lib/database/combosData";
 import { MLBB_HEROES, getHeroById } from "@/lib/database/heroesData";
-import type { DraftMode, Hero, Lane, RankTier } from "@/lib/types";
+import type { DraftMode, Hero, Lane, RankTier, Role } from "@/lib/types";
 
 type Side = "blue" | "red";
 type Drawer = "hero-power" | "counter" | "heroes" | null;
 
 const ALL_LANES: Lane[] = ["Jungle", "Gold Lane", "Mid Lane", "EXP Lane", "Roam"];
+const QUICK_ROLES: Array<Role | "All"> = ["All", "Tank", "Fighter", "Assassin", "Mage", "Marksman", "Support"];
 
 const tierIcon: Record<string, string> = {
   Epic: "🔵",
@@ -162,10 +169,16 @@ function RecRow({
 export function DraftWorkspace() {
   const [tier, setTier] = useTier();
   const [heroPower] = useHeroPower();
-  const [mode, setMode] = useState<DraftMode>("Ranked Draft");
-  const [mySide, setMySide] = useState<Side>("blue");
+  const [mode, setMode] = useDraftMode();
+  const [mySide, setMySide] = useMySide();
+  const [myLane, setMyLane] = useMyLane();
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Meta sync state
+  const [metaVersion, setMetaVersion] = useState(0);
+  const [metaSyncing, setMetaSyncing] = useState(false);
+  const [metaStatus, setMetaStatus] = useState<string>(META_PATCH_INFO.patch);
 
   // Sequential live draft log + active step index
   const [log, setLog] = useState<DraftLogEntry[]>([]);
@@ -175,7 +188,36 @@ export function DraftWorkspace() {
   // List UI state
   const [showMoreBans, setShowMoreBans] = useState(false);
   const [showMorePicks, setShowMorePicks] = useState(false);
-  const [pickLaneFilter, setPickLaneFilter] = useState<Lane | null>(null);
+  const [laneOverride, setLaneOverride] = useState<Lane | null | "unset">("unset");
+  const [quickRole, setQuickRole] = useState<Role | "All">("All");
+
+  const activeLaneFilter = laneOverride === "unset" ? myLane : laneOverride;
+
+  const syncMeta = async () => {
+    if (metaSyncing) return;
+    setMetaSyncing(true);
+    try {
+      const res = await fetch(`/api/meta?tier=${encodeURIComponent(tier)}`);
+      const data = (await res.json()) as {
+        live?: boolean;
+        source?: string;
+        patch?: string;
+        count?: number;
+        overrides?: Record<string, LiveMetaOverride>;
+      };
+      if (data.overrides && Object.keys(data.overrides).length > 0) {
+        setLiveMetaOverrides(data.overrides);
+        setMetaVersion((v) => v + 1);
+        setMetaStatus(`Live Sync (${data.count} hero)`);
+      } else {
+        setMetaStatus(`${data.patch ?? META_PATCH_INFO.patch} · Snapshot`);
+      }
+    } catch {
+      setMetaStatus(`${META_PATCH_INFO.patch} · Lokal`);
+    } finally {
+      setMetaSyncing(false);
+    }
+  };
 
   const config = useMemo(() => getInitialDraftConfig(tier, mode), [tier, mode]);
   const bansPerTeam = config.bansPerTeam;
@@ -256,7 +298,7 @@ export function DraftWorkspace() {
   const reset = () => {
     setLog([]);
     setStepIdx(0);
-    setPickLaneFilter(null);
+    setLaneOverride("unset");
     setShowMoreBans(false);
     setShowMorePicks(false);
     setViewAnalysis(false);
@@ -272,7 +314,8 @@ export function DraftWorkspace() {
   // Real-time Ban & Pick Predictions
   const banRecs = useMemo(
     () => generateBanRecommendations(allUsed, heroPower, tier, myPicks, enemyPicks, 10, mode),
-    [allUsed, heroPower, tier, myPicks, enemyPicks, mode]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allUsed, heroPower, tier, myPicks, enemyPicks, mode, metaVersion]
   );
 
   const pickRecs = useMemo(
@@ -281,13 +324,18 @@ export function DraftWorkspace() {
         tier,
         mode,
         mySide,
-        laneFilter: pickLaneFilter,
+        laneFilter: activeLaneFilter,
         limit: 10,
       }),
-    [myPicks, enemyPicks, allBans, heroPower, tier, mode, mySide, pickLaneFilter]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [myPicks, enemyPicks, allBans, heroPower, tier, mode, mySide, activeLaneFilter, metaVersion]
   );
 
-  const topMetaBans = useMemo(() => getTopMetaBans(tier, mode, allUsed, 6), [tier, mode, allUsed]);
+  const quickRoleHeroes = useMemo(
+    () => getQuickHeroesByRole(quickRole, tier, mode, allUsed, 8),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [quickRole, tier, mode, allUsed, metaVersion]
+  );
   const enemyThreats = useMemo(
     () => predictEnemyThreats(myPicks, enemyPicks, allBans),
     [myPicks, enemyPicks, allBans]
@@ -320,10 +368,19 @@ export function DraftWorkspace() {
           <h1 className="text-lg sm:text-xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
             LIVE DRAFT GUIDE
           </h1>
-          <p className="text-[11px] text-slate-400">
-            {mode === "Tournament Draft" ? "Turnamen MPL" : tier} · {bansPerTeam} ban/tim ·{" "}
-            {mySide === "blue" ? "Tim Biru" : "Tim Merah"}
-          </p>
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <span className="text-[11px] text-slate-400">
+              {mode === "Tournament Draft" ? "Turnamen MPL" : tier} · {bansPerTeam} ban/tim · {metaStatus}
+            </span>
+            <button
+              type="button"
+              onClick={syncMeta}
+              disabled={metaSyncing}
+              className="px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-[10px] font-semibold text-[#f4c430] disabled:opacity-50"
+            >
+              {metaSyncing ? "⏳ Sync..." : "🔄 Sync Meta"}
+            </button>
+          </div>
         </div>
         <div className="flex gap-1.5">
           {(log.length > 0 || stepIdx > 0) && (
@@ -377,12 +434,13 @@ export function DraftWorkspace() {
         </button>
       </div>
 
-      {/* Collapsible Mode, Tier & Side Selection (auto-collapses once draft starts so recommendations stay on top!) */}
+      {/* Collapsible Mode, Tier, Side & Sticky Posisi Saya */}
       {(log.length > 0 || stepIdx > 0) && !showSettings ? (
         <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs">
           <span className="text-slate-300 truncate">
-            {mode === "Tournament Draft" ? "🏟️ Turnamen MPL" : `${tierIcon[tier]} ${tier}`} ·{" "}
-            {mySide === "blue" ? "🔵 Biru (First Pick)" : "🔴 Merah (Counter)"}
+            {mode === "Tournament Draft" ? "🏟️ MPL" : `${tierIcon[tier]} ${tier}`} ·{" "}
+            {mySide === "blue" ? "🔵 Biru" : "🔴 Merah"}
+            {myLane ? ` · 📌 ${LANE_LABELS[myLane]}` : ""}
           </span>
           <button
             type="button"
@@ -395,7 +453,7 @@ export function DraftWorkspace() {
       ) : (
         <div className="card p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-300">⚙️ Pengaturan Match</span>
+            <span className="text-xs font-bold text-slate-300">⚙️ Pengaturan Match &amp; Posisi Kamu</span>
             {(log.length > 0 || stepIdx > 0) && (
               <button
                 type="button"
@@ -405,6 +463,40 @@ export function DraftWorkspace() {
                 Tutup ▲
               </button>
             )}
+          </div>
+
+          {/* Sticky Posisi Saya */}
+          <div className="space-y-1">
+            <div className="text-[10px] text-slate-400 font-semibold">📌 Posisi Saya (Tersimpan otomatis):</div>
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setMyLane(null);
+                  setLaneOverride("unset");
+                }}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium border shrink-0 transition ${
+                  myLane === null ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+                }`}
+              >
+                Semua Lane
+              </button>
+              {ALL_LANES.map((lane) => (
+                <button
+                  key={lane}
+                  type="button"
+                  onClick={() => {
+                    setMyLane(lane);
+                    setLaneOverride("unset");
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium border shrink-0 transition ${
+                    myLane === lane ? "bg-[#f4c430] text-black border-[#f4c430]" : "border-white/10 text-slate-400 bg-white/[0.03]"
+                  }`}
+                >
+                  {LANE_LABELS[lane]}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-white/[0.04]">
             {(["Ranked Draft", "Tournament Draft"] as DraftMode[]).map((m) => (
@@ -605,55 +697,48 @@ export function DraftWorkspace() {
                 }
               />
 
-              {/* Quick tap chips */}
-              {currentStep.action === "ban" && topMetaBans.length > 0 && (
-                <div className="space-y-1.5">
-                  <p className="text-[11px] text-slate-400">Tap cepat hero ban terpopuler di meta ini:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {topMetaBans.map((m) => {
-                      const h = getHeroById(m.heroId);
-                      if (!h) return null;
-                      return (
-                        <button
-                          key={h.id}
-                          type="button"
-                          onClick={() => recordStep(h.id)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 text-xs active:scale-95 transition"
-                        >
-                          <HeroAvatar hero={h} size={20} />
-                          <span className="font-medium">{h.name}</span>
-                          <span className="text-[10px] text-rose-300">{m.banRate}%</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* 1-Tap Role Grid (No typing needed!) */}
+              <div className="space-y-2 pt-1 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-slate-400 font-semibold">
+                    ⚡ Pilih Cepat 1-Tap per Role (Tanpa Ketik):
+                  </span>
                 </div>
-              )}
-
-              {currentStep.action === "pick" &&
-                (enemyThreats.counterThreats.length > 0 || topMetaBans.length > 0) && (
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] text-slate-400">Tap cepat jika lawan mengambil hero meta/ancaman:</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(enemyThreats.counterThreats.length > 0
-                        ? enemyThreats.counterThreats.map((t) => t.hero)
-                        : topMetaBans.map((m) => getHeroById(m.heroId)).filter((h): h is Hero => !!h)
-                      )
-                        .slice(0, 6)
-                        .map((h) => (
-                          <button
-                            key={h.id}
-                            type="button"
-                            onClick={() => recordStep(h.id)}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 text-xs active:scale-95 transition"
-                          >
-                            <HeroAvatar hero={h} size={20} />
-                            <span className="font-medium">{h.name}</span>
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                )}
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                  {QUICK_ROLES.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setQuickRole(r)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border shrink-0 transition ${
+                        quickRole === r
+                          ? "bg-rose-500/30 text-rose-100 border-rose-400/50"
+                          : "border-white/10 text-slate-400 bg-white/[0.03]"
+                      }`}
+                    >
+                      {r === "All" ? "🔥 Populer" : r}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {quickRoleHeroes.map(({ hero: h, meta }) => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => recordStep(h.id)}
+                      className="flex items-center gap-1.5 p-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 border border-white/10 text-left active:scale-95 transition"
+                    >
+                      <HeroAvatar hero={h} size={24} />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-semibold truncate">{h.name}</div>
+                        <div className="text-[9px] text-slate-400 truncate">
+                          {meta.metaTier} · {currentStep.action === "ban" ? `Ban ${meta.banRate}%` : `WR ${meta.winRate}%`}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -751,10 +836,10 @@ export function DraftWorkspace() {
                     Diurutkan dari prioritas #1 teratas (role kosong, counter lawan, sinergi &amp; meta {tier}).
                   </p>
                 </div>
-                {pickLaneFilter && (
+                {activeLaneFilter && (
                   <button
                     type="button"
-                    onClick={() => setPickLaneFilter(null)}
+                    onClick={() => setLaneOverride(null)}
                     className="text-[11px] text-[#f4c430] underline shrink-0"
                   >
                     Semua lane
@@ -764,16 +849,22 @@ export function DraftWorkspace() {
 
               {/* Lane filter pills ("Posisi Saya") */}
               <div className="space-y-1">
-                <div className="text-[10px] text-slate-400 font-semibold">Filter Posisi / Lane Kamu:</div>
+                <div className="text-[10px] text-slate-400 font-semibold">
+                  Filter Posisi / Lane {myLane ? `(📌 Tersimpan: ${LANE_LABELS[myLane]})` : "Kamu"}:
+                </div>
                 <div className="flex flex-wrap gap-1.5">
                   {ALL_LANES.map((lane) => {
                     const isOpen = missingLanes.includes(lane);
-                    const isFiltered = pickLaneFilter === lane;
+                    const isFiltered = activeLaneFilter === lane;
                     return (
                       <button
                         key={lane}
                         type="button"
-                        onClick={() => setPickLaneFilter((cur) => (cur === lane ? null : lane))}
+                        onClick={() => {
+                          const next = activeLaneFilter === lane ? null : lane;
+                          setLaneOverride(next);
+                          setMyLane(next);
+                        }}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
                           isFiltered
                             ? "bg-[#f4c430] text-black border-[#f4c430]"
